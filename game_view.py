@@ -180,6 +180,7 @@ class GameMap(object):
         self.player = None
         self.parent = parent
         y = self.size.y - 1
+        player_pos = None
         with open(name) as f:
             for line in f:
                 line = line.strip('\n')
@@ -200,13 +201,16 @@ class GameMap(object):
                                 if self.data[x+tile_x][y+tile_y] == TileTypes.GRASS:
                                     self.data[x+tile_x][y+tile_y] = td
                         if self.input_mapping[tile] == TileTypes.PLAYER:
-                            self.player = actors.Player(self,Point(x+0.2,y))
-                            self.actors.append(self.player)
+                            player_pos = Point(x+0.2,y)
                     #except KeyError:
                     #    raise globals.types.FatalError('Invalid map data')
                 y -= 1
                 if y < 0:
                     break
+        if not player_pos:
+            raise Exception('No player defined')
+        self.player = actors.Player(self,player_pos)
+        self.actors.append(self.player)
 
     def AddObject(self,obj):
         self.object_list.append(obj)
