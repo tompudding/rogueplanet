@@ -8,6 +8,7 @@ uniform sampler2D shadow_map;
 uniform vec3 screen_dimensions;
 uniform vec3 light_pos;
 uniform int light_type;
+uniform int shadow_index;
 uniform vec3 ambient_colour;
 uniform vec3 directional_light_dir;
 uniform vec3 light_colour;
@@ -30,7 +31,7 @@ vec2 CalcTexCoord()
 
 //sample from the 1D distance map
 float sample(vec2 coord, float r) {
-    return step(r, texture2D(shadow_map, coord).r*384);
+    return step(r, texture(shadow_map, coord).r*384);
 }
 
 void main()
@@ -61,15 +62,11 @@ void main()
         float theta = atan(-adjust_xy.y,-adjust_xy.x);
         float r = length(adjust_xy)*0.95;
         float coord = (PI-theta) / (2.0*PI);
-        vec2 tc = vec2(coord,0);
+        vec2 tc = vec2(coord,shadow_index*3.0/(256.0));
         float centre = sample(tc,r);
         float blur = 0.003;//(1/256.)*smoothstep(0.,1.,r);
         float sum = centre * 0.16;
         int i;
-        float cone_diff = abs(theta - cone_dir);
-        if(theta > cone_width) {
-            discard;
-        }
 
         for(i=0;i<NUM_VALUES;i++) {
             sum += sample(vec2(tc.x - (NUM_VALUES-i)*blur, tc.y), r) * values[i];
@@ -107,14 +104,31 @@ void main()
                                      light_pos.z );
         vec2 adjust_xy = world_light_pos.xy-current_pos.xy;
         float theta = atan(-adjust_xy.y,-adjust_xy.x) - cone_dir;
-        if(theta > PI) {
-            theta -= 2*PI;
+        float theta_diff = theta - cone_dir;
+        float r = length(adjust_xy)*0.95;
+        float coord = (PI-theta) / (2.0*PI);
+        vec2 tc = vec2(coord,shadow_index*3.0/256.0);
+        float centre = sample(tc,r);
+        float blur = 0.003;//(1/256.)*smoothstep(0.,1.,r);
+        float sum = centre * 0.16;
+        int i;
+        float falloff = 0.0;
+        if(theta_diff > PI) {
+            theta_diff -= 2*PI;
         }
-        if(theta < -PI) {
-            theta += 2*PI;
+        if(theta_diff < -PI) {
+            theta_diff += 2*PI;
         }
-        if(abs(theta) > cone_width) {
+        if(abs(theta_diff) > cone_width) {
             discard;
+        }
+        if(abs(theta_diff) > cone_width-0.2) {
+            falloff = (abs(theta_diff)-(cone_width-0.2))/0.2;
+            falloff *= falloff;
+        }
+         for(i=0;i<NUM_VALUES;i++) {
+            sum += sample(vec2(tc.x - (NUM_VALUES-i)*blur, tc.y), r) * values[i];
+            sum += sample(vec2(tc.x - (i+1)*blur, tc.y), r) * values[NUM_VALUES-1-i];
         }
 
         //adjust_xy.y *= 1.41;
@@ -122,10 +136,10 @@ void main()
         vec3 light_dir = normalize(world_light_pos-current_pos);
         vec3 diffuse = light_colour*max(dot(light_dir,normal),0.0);
         float distance = min(length(adjust_xy)/400.0,1);
-        vec3 intensity = diffuse*(1-distance*distance)*(1-ambient_attenuation);
+        vec3 intensity = diffuse*(1-distance*distance)*(1-ambient_attenuation)*(1-falloff);
         //out_colour = mix(vec4(0,0,0,1),colour,value);
 
-        out_colour = vec4(colour.rgb*intensity,1);
+        out_colour = vec4(colour.rgb*intensity*sum,1);
     }
 
     //out_colour = mix(out_colour,occlude,0.1);

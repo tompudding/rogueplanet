@@ -117,6 +117,8 @@ class BaseLight(object):
     def __init__(self,parent):
         self.quad_buffer = drawing.QuadBuffer(4)
         self.quad = drawing.Quad(self.quad_buffer)
+        self.shadow_quad = globals.shadow_buffer.NewLight()
+        self.shadow_index = self.shadow_quad.shadow_index
         self.parent = parent
         self.colour = (1,1,1)
 
@@ -138,6 +140,8 @@ class ConeLight(object):
     def __init__(self,parent):
         self.quad_buffer = drawing.QuadBuffer(4)
         self.quad = drawing.Quad(self.quad_buffer)
+        self.shadow_quad = globals.shadow_quadbuffer.NewLight()
+        self.shadow_index = self.shadow_quad.shadow_index
         self.parent = parent
         self.colour = (1,1,1)
         self.angle = 0.0
@@ -147,6 +151,11 @@ class ConeLight(object):
     @property
     def pos(self):
         return (self.parent.pos.x*globals.tile_dimensions.x,self.parent.pos.y*globals.tile_dimensions.y,10)
+
+    @property
+    def screen_pos(self):
+        p = self.pos
+        return (p[0] - globals.game_view.viewpos._pos.x,p[1]-globals.game_view.viewpos._pos.y)
 
     def Update(self,t):
         box = (globals.tile_scale*Point(self.width,self.height))

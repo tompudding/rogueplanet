@@ -10,6 +10,7 @@ from globals.types import Point
 import globals
 import time
 import constants
+import itertools
 
 numpymodule.NumpyHandler.ERROR_ON_COPY = True
 
@@ -226,6 +227,7 @@ def Init(w,h):
                                   'ambient_attenuation',
                                   'directional_light_dir',
                                   'cone_dir',
+                                  'shadow_index',
                                   'cone_width',
                                   'light_colour'),
                       attributes = ('vertex_data',))
@@ -331,6 +333,13 @@ def EndFrameGameMode():
     glEnableVertexAttribArray( shadow_shader.locations.vertex_data );
     glVertexAttribPointer( shadow_shader.locations.vertex_data, 3, GL_FLOAT, GL_FALSE, 0, quad_buffer.vertex_data )
     glDrawElements(GL_QUADS,4,GL_UNSIGNED_INT,quad_buffer.indices)
+
+    #Now do the other lights with shadows
+    for light in itertools.chain(globals.lights,globals.cone_lights):
+        glUniform2f(shadow_shader.locations.light_pos, *light.pos)
+        glVertexAttribPointer( shadow_shader.locations.vertex_data, 3, GL_FLOAT, GL_FALSE, 0, quad_buffer.vertex_data )
+        glDrawElements(GL_QUADS,4,GL_UNSIGNED_INT,quad_buffer.indices[light.shadow_index*4:])
+
     #return
 
     shadow_buffer.BindForReading(gbuffer.NUM_TEXTURES)
@@ -339,6 +348,22 @@ def EndFrameGameMode():
     glClearColor(0.0, 0.0, 0.0, 1.0)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     light_shader.Use()
+
+    quad_buffer = globals.temp_mouse_light
+
+    #Hack, do the mouse light separate for now so we can set it's position. Should be done elsewhere really and be in
+    #the lights list
+    glUniform1i(light_shader.locations.light_type, 2)
+    glUniform1i(light_shader.locations.shadow_index, 0)
+    glUniform3f(light_shader.locations.light_pos, globals.mouse_screen.x, globals.mouse_screen.y,200)
+    glUniform3f(light_shader.locations.light_colour, 1,1,1)
+    glUniform1f(light_shader.locations.cone_dir, 0)
+    glUniform1f(light_shader.locations.cone_width, 70)
+    glVertexAttribPointer( light_shader.locations.vertex_data, 3, GL_FLOAT, GL_FALSE, 0, quad_buffer.vertex_data )
+    globals.mouse_light_quad.SetVertices(globals.mouse_screen - Point(400,400),
+                                         globals.mouse_screen + Point(400,400),0.1)
+    glDrawElements(GL_QUADS,quad_buffer.current_size,GL_UNSIGNED_INT,quad_buffer.indices)
+
 
     #Need to draw some lights...
     timeofday = globals.game_view.timeofday
@@ -366,23 +391,6 @@ def EndFrameGameMode():
     glVertexAttribPointer( light_shader.locations.vertex_data, 3, GL_FLOAT, GL_FALSE, 0, quad_buffer.vertex_data )
     glDrawElements(GL_QUADS,quad_buffer.current_size,GL_UNSIGNED_INT,quad_buffer.indices)
 
-    glUniform1i(light_shader.locations.light_type, 2)
-
-    quad_buffer = globals.temp_mouse_light
-
-    #Hack, do the mouse light separate for now so we can set it's position. Should be done elsewhere really and be in
-    #the lights list
-    glUniform1i(light_shader.locations.light_type, 2)
-    glUniform3f(light_shader.locations.light_pos, globals.mouse_screen.x, globals.mouse_screen.y,200)
-    glUniform3f(light_shader.locations.light_colour, 1,1,1)
-    glUniform1f(light_shader.locations.cone_dir, 0)
-    glUniform1f(light_shader.locations.cone_width, 70)
-    glVertexAttribPointer( light_shader.locations.vertex_data, 3, GL_FLOAT, GL_FALSE, 0, quad_buffer.vertex_data )
-    globals.mouse_light_quad.SetVertices(globals.mouse_screen - Point(400,400),
-                                         globals.mouse_screen + Point(400,400),0.1)
-    glDrawElements(GL_QUADS,quad_buffer.current_size,GL_UNSIGNED_INT,quad_buffer.indices)
-
-
     Scale(globals.scale.x,globals.scale.y,1)
     Translate(-globals.game_view.viewpos.pos.x,-globals.game_view.viewpos.pos.y,0)
     glUniform1i(light_shader.locations.light_type, 3)
@@ -394,6 +402,8 @@ def EndFrameGameMode():
 
     glUniform1i(light_shader.locations.light_type, 4)
     for light in globals.cone_lights:
+        print light.shadow_index
+        glUniform1i(light_shader.locations.shadow_index, light.shadow_index)
         glUniform3f(light_shader.locations.light_pos, *light.pos)
         glUniform3f(light_shader.locations.light_colour, *light.colour)
         glUniform1f(light_shader.locations.cone_dir, light.angle)
