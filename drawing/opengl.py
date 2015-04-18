@@ -379,7 +379,7 @@ def EndFrameGameMode():
     glDrawElements(GL_QUADS,quad_buffer.current_size,GL_UNSIGNED_INT,quad_buffer.indices)
 
 
-    Scale(globals.scale.x,globals.scale.y,1)
+    #Scale(globals.scale.x,globals.scale.y,1)
     Translate(-globals.game_view.viewpos.pos.x,-globals.game_view.viewpos.pos.y,0)
     glUniform1i(light_shader.locations.light_type, 3)
     for light in globals.lights:
@@ -408,7 +408,7 @@ def InitDrawing():
     glUniform1i(shadow_shader.locations.colour_map  , gbuffer.TEXTURE_TYPE_DIFFUSE)
     glUniform1i(shadow_shader.locations.normal_map  , gbuffer.TEXTURE_TYPE_NORMAL)
     glUniform1i(shadow_shader.locations.occlude_map  , gbuffer.TEXTURE_TYPE_OCCLUDE)
-    glUniform3f(shadow_shader.locations.screen_dimensions, globals.screen.x, globals.screen.y, z_max)
+    glUniform3f(shadow_shader.locations.screen_dimensions, globals.screen_abs.x, globals.screen_abs.y, z_max)
     glUniform3f(shadow_shader.locations.sb_dimensions, ShadowMapBuffer.WIDTH, ShadowMapBuffer.HEIGHT, 1)
     glUniform2f(shadow_shader.locations.light_dimensions, 256, 256)
     light_shader.Use()
@@ -417,17 +417,17 @@ def InitDrawing():
     glUniform1i(light_shader.locations.normal_map  , gbuffer.TEXTURE_TYPE_NORMAL)
     glUniform1i(light_shader.locations.occlude_map  , gbuffer.TEXTURE_TYPE_OCCLUDE)
     glUniform1i(light_shader.locations.shadow_map  , gbuffer.TEXTURE_TYPE_SHADOW)
-    glUniform3f(light_shader.locations.screen_dimensions, globals.screen.x, globals.screen.y, z_max)
+    glUniform3f(light_shader.locations.screen_dimensions, globals.screen_abs.x, globals.screen_abs.y, z_max)
     #glUniform1f(light_shader.locations.ambient_level, 0.3)
     default_shader.Use()
-    glUniform3f(default_shader.locations.screen_dimensions, globals.screen.x, globals.screen.y, z_max)
+    glUniform3f(default_shader.locations.screen_dimensions, globals.screen_abs.x, globals.screen_abs.y, z_max)
     glUniform1i(default_shader.locations.tex, 0)
     geom_shader.Use()
     glUniform1i(geom_shader.locations.tex, 0)
     glUniform1i(geom_shader.locations.normal_tex, 1)
     glUniform1i(geom_shader.locations.occlude_tex, 2)
     glUniform1i(geom_shader.locations.displace_tex, 3)
-    glUniform3f(geom_shader.locations.screen_dimensions, globals.screen.x, globals.screen.y, z_max)
+    glUniform3f(geom_shader.locations.screen_dimensions, globals.screen_abs.x, globals.screen_abs.y, z_max)
 
 
 def DrawAll(quad_buffer,texture):

@@ -11,7 +11,8 @@ def Init():
     w,h = (1280,720)
     globals.tile_scale            = Point(1,1)
     globals.scale                 = Point(2,2)
-    globals.screen                = Point(w,h)/globals.scale
+    globals.screen_abs            = Point(w,h)
+    globals.screen                = globals.screen_abs/globals.scale
     globals.screen_root           = ui.UIRoot(Point(0,0),globals.screen)
     globals.lights                = []
 

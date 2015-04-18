@@ -46,7 +46,7 @@ void main()
         //vec3 light_dir = normalize(-vec3(1,3,-1));
         vec3 light_dir = normalize(-directional_light_dir);
         vec3 diffuse = ambient_colour + (light_colour*max(dot(light_dir,normal),0.0));
-        
+
         out_colour = vec4(colour.rgb*diffuse,0.1);
         //out_colour = mix(out_colour,displacement,1);
         //out_colour = colour;
@@ -70,7 +70,7 @@ void main()
             sum += sample(vec2(tc.x - (i+1)*blur, tc.y), r) * values[NUM_VALUES-1-i];
         }
 
-        adjust_xy.y *= 1.41;
+        //adjust_xy.y *= 1.41;
         //todo: use a height map to get the z coord
         vec3 light_dir = normalize(light_pos-current_pos);
         vec3 diffuse = light_colour*max(dot(light_dir,normal),0.0);
@@ -86,7 +86,7 @@ void main()
                                      (light_pos.y+translation.y)*scale.y,
                                      light_pos.z );
         vec2 adjust_xy = world_light_pos.xy-current_pos.xy;
-        adjust_xy.y *= 1.41;
+        //adjust_xy.y *= 1.41;
         //todo: use a height map to get the z coord
         vec3 light_dir = normalize(world_light_pos-current_pos);
         vec3 diffuse = light_colour*max(dot(light_dir,normal),0.0);
@@ -95,6 +95,6 @@ void main()
         //out_colour = mix(vec4(0,0,0,1),colour,value);
         out_colour = vec4(colour.rgb*intensity,1);
     }
-    
+
     //out_colour = mix(out_colour,occlude,0.1);
 }
