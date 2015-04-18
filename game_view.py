@@ -315,8 +315,8 @@ class GameView(ui.RootElement):
         if self.viewpos._pos.y > (self.map.world_size.y - globals.screen.y):
             self.viewpos._pos.y = (self.map.world_size.y - globals.screen.y)
 
-        globals.mouse_screen = self.viewpos.pos + self.mouse_pos
-        self.map.player.mouse_pos = globals.mouse_screen
+        globals.mouse_world = self.viewpos.pos + self.mouse_pos
+        self.map.player.mouse_pos = globals.mouse_world
 
         self.map.player.Update(t)
 
@@ -341,9 +341,9 @@ class GameView(ui.RootElement):
         #print 'mouse',pos
         #if self.selected_player != None:
         #    self.selected_player.MouseMotion()
-        screen_pos = self.viewpos.pos + pos
-        self.mouse_pos = pos
+        world_pos = self.viewpos.pos + pos
+        #globals.mouse_screen = pos
 
-        self.mode.MouseMotion(screen_pos,rel)
+        self.mode.MouseMotion(world_pos,rel)
 
         return super(GameView,self).MouseMotion(pos,rel,handled)

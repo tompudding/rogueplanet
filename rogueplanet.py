@@ -14,6 +14,7 @@ def Init():
     globals.screen_abs            = Point(w,h)
     globals.screen                = globals.screen_abs/globals.scale
     globals.screen_root           = ui.UIRoot(Point(0,0),globals.screen)
+    globals.mouse_screen          = Point(0,0)
     globals.lights                = []
 
     globals.quad_buffer           = drawing.QuadBuffer(131072)
@@ -35,8 +36,8 @@ def Init():
 
     #WTF?
     globals.mouse_light_quad = drawing.Quad(globals.temp_mouse_light)
-    globals.mouse_light_quad.SetVertices(Point(0,0),
-                                             Point(500,500),10)
+    #globals.mouse_light_quad.SetVertices(Point(0,0),
+    #                                         Point(500,500),10)
     #globals.mouse_light_quad.Disable()
 
     globals.dirs = globals.types.Directories('resource')
@@ -93,11 +94,14 @@ def main():
             elif (event.type == pygame.KEYUP):
                 globals.current_view.KeyUp(event.key)
             else:
+
                 try:
                     pos = Point(float(event.pos[0])/globals.scale[0],globals.screen[1]-(float(event.pos[1])/globals.scale[1]))
                 except AttributeError:
                     continue
+
                 if event.type == pygame.MOUSEMOTION:
+                    globals.mouse_screen = Point(event.pos[0],globals.screen_abs[1]-event.pos[1])
                     rel = Point(event.rel[0],-event.rel[1])
                     handled = globals.screen_root.MouseMotion(pos,rel,False)
                     if handled:
