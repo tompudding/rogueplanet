@@ -6,6 +6,8 @@ import os
 import game_view
 import random
 import pygame
+import cmath
+import math
 
 class Directions:
     UP    = 0
@@ -22,20 +24,34 @@ class Actor(object):
         self.tc             = globals.atlas.TextureSpriteCoords('%s.png' % self.texture)
         self.quad           = drawing.Quad(globals.quad_buffer,tc = self.tc)
         self.size           = Point(float(self.width)/16,float(self.height)/16)
-        self.corners        = Point(0,0),Point(self.size.x,0),Point(0,self.size.y),self.size
+        self.corners = self.size, Point(-self.size.x,self.size.y), Point(-self.size.x,-self.size.y), Point(self.size.x,-self.size.y)
+        self.corners        = [p*0.5 for p in self.corners]
+        self.corners_polar  = [(p.length(),((1+i*2)*math.pi)/4) for i,p in enumerate(self.corners)]
+        self.corners_euclid = [p for p in self.corners]
         self.current_sound  = None
         self.last_update    = None
         self.move_speed     = Point(0,0)
         self.move_direction = Point(0,0)
         self.SetPos(pos)
+        self.set_angle(3*math.pi/2)
 
     def SetPos(self,pos):
         self.pos = pos
-        bl = pos * globals.tile_dimensions
-        tr = bl + (globals.tile_scale*Point(self.width,self.height))
-        bl = bl.to_int()
-        tr = tr.to_int()
-        self.quad.SetVertices(bl,tr,4)
+
+        vertices = [((pos + corner)*globals.tile_dimensions).to_int() for corner in self.corners_euclid]
+
+        #bl = pos * globals.tile_dimensions
+        #tr = bl + (globals.tile_scale*Point(self.width,self.height))
+        #bl = bl.to_int()
+        #tr = tr.to_int()
+        #self.quad.SetVertices(bl,tr,4)
+        self.quad.SetAllVertices(vertices, 4)
+
+    def set_angle(self, angle):
+        self.angle = angle
+        self.corners_polar  = [(p.length(),self.angle + ((1+i*2)*math.pi)/4) for i,p in enumerate(self.corners)]
+        cnums = [cmath.rect(r,a) for (r,a) in self.corners_polar]
+        self.corners_euclid = [Point(c.real,c.imag) for c in cnums]
 
     def Update(self,t):
         self.Move(t)

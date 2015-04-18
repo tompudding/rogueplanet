@@ -6,7 +6,7 @@ from drawing.opengl import GL_LINES
 
 class ShapeBuffer(object):
     """
-    Keeps track of a potentially large number of quads that are kept in a single contiguous array for 
+    Keeps track of a potentially large number of quads that are kept in a single contiguous array for
     efficient rendering.
 
     It is used by instantiating it and then passing it as an argument to the quad constructor. The quad
@@ -39,7 +39,7 @@ class ShapeBuffer(object):
                 for j in xrange(4):
                     self.colour_data[out+i][j] = 1
             return out
-            
+
         out = self.current_size
         self.current_size += self.num_points
         if self.current_size >= self.max_size:
@@ -64,7 +64,7 @@ class ShapeBuffer(object):
         """
         A quad is no longer needed. Because it can be in the middle of our nice block and we can't be spending serious
         cycles moving everything, we just disable it by zeroing out it's indicies. This fragmentation has a cost in terms
-        of the number of quads we're going to be asking the graphics card to draw, but because the game is so simple I'm 
+        of the number of quads we're going to be asking the graphics card to draw, but because the game is so simple I'm
         hoping it won't ever be an issue
         """
         self.vacant.add(index)
@@ -86,7 +86,7 @@ class ShapeVertex(object):
     def __init__(self,index,buffer):
         self.index = index
         self.buffer = buffer
-    
+
     def __getitem__(self,i):
         if isinstance(i,slice):
             start,stop,stride = i.indices(len(self.buffer)-self.index)
@@ -163,6 +163,15 @@ class Shape(object):
             for i in xrange(self.num_points):
                 self.vertex[i] = (0,0,0)
 
+    def SetAllVertices(self,vertices,z):
+        if self.deleted:
+            return
+        setallvertices(self,self.vertex,vertices,z)
+        if self.old_vertices != None:
+            self.old_vertices = numpy.copy(self.vertex[0:self.num_points])
+            for i in xrange(self.num_points):
+                self.vertex[i] = (0,0,0)
+
     def GetCentre(self):
         return (Point(self.vertex[0][0],self.vertex[0][1]) + Point(self.vertex[2][0],self.vertex[2][1]))/2
 
@@ -174,7 +183,7 @@ class Shape(object):
         for i in xrange(4):
             vertices[i][0] -= amount[0]
             vertices[i][1] -= amount[1]
-    
+
     def SetColour(self,colour):
         if self.deleted:
             return
@@ -195,6 +204,10 @@ def setverticesquad(self,vertex,bl,tr,z):
     vertex[1] = (bl.x,tr.y,z)
     vertex[2] = (tr.x,tr.y,z)
     vertex[3] = (tr.x,bl.y,z)
+
+def setallvertices(self,vertex,vertices,z):
+    for i,v in enumerate(vertices):
+        vertex[i] = (v.x,v.y,z)
 
 def setverticesline(self,vertex,start,end,z):
     vertex[0] = (start.x,start.y,z)
@@ -238,7 +251,7 @@ class QuadBorder(object):
         self.line_width = line_width
         if colour:
             self.SetColour(colour)
-        
+
     def SetVertices(self,bl,tr):
         #top bar
         self.quads[0].SetVertices(Point(bl.x,tr.y-self.line_width),
@@ -248,12 +261,12 @@ class QuadBorder(object):
         self.quads[1].SetVertices(Point(tr.x-self.line_width,bl.y),
                                   tr,
                                   drawing.constants.DrawLevels.ui+1)
-        
+
         #bottom bar
         self.quads[2].SetVertices(bl,
                                   Point(tr.x,bl.y+self.line_width),
                                   drawing.constants.DrawLevels.ui+1)
-        
+
         #left bar
         self.quads[3].SetVertices(bl,
                                   Point(bl.x+self.line_width,tr.y),
