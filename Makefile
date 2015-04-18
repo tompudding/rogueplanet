@@ -1,0 +1,2 @@
+all:
+	python rogueplanet.py
