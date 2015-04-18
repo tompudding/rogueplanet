@@ -25,6 +25,7 @@ class Actor(object):
         self.corners = Point(0,0),Point(self.size.x,0),Point(0,self.size.y),self.size
         self.SetPos(pos)
         self.current_sound = None
+        self.last_update = None
 
     def SetPos(self,pos):
         self.pos = pos
@@ -35,7 +36,12 @@ class Actor(object):
         self.quad.SetVertices(bl,tr,4)
 
     def Move(self,amount):
-        amount = Point(amount.x,amount.y)
+        if self.last_update == None:
+            self.last_update = globals.time
+            return
+        elapsed = globals.time - self.last_update
+        self.last_update = globals.time
+        amount = Point(amount.x*elapsed*0.05,amount.y*elapsed*0.05)
 
         #check each of our four corners
         for corner in self.corners:
@@ -76,6 +82,9 @@ class Actor(object):
 
     def GetPos(self):
         return self.pos
+
+    def GetPosCentre(self):
+        return self.pos+self.size
 
 class Player(Actor):
     texture = 'player'
