@@ -79,6 +79,10 @@ class GameMode(Mode):
                          pygame.K_RIGHT : Point( 0.01*speed, 0.00),
                          pygame.K_UP    : Point( 0.00, 0.01*speed),
                          pygame.K_DOWN  : Point( 0.00,-0.01*speed)}
+    translations = {pygame.K_a : pygame.K_LEFT,
+                    pygame.K_d : pygame.K_RIGHT,
+                    pygame.K_w : pygame.K_UP,
+                    pygame.K_s : pygame.K_DOWN}
     class KeyFlags:
         LEFT  = 1
         RIGHT = 2
@@ -92,16 +96,30 @@ class GameMode(Mode):
     def __init__(self,parent):
         self.parent            = parent
         #self.parent.info_box.Enable()
-        self.keydownmap = 0
+        self.keydownmap = {}
+        #Let's do WASD too...
 
-    def KeyDown(self,key):
+    def KeyDown(self,input_key):
+        try:
+            key = self.translations[input_key]
+        except KeyError:
+            key = input_key
+        if self.keyflags[key] in self.keydownmap:
+            return
         if key in self.direction_amounts:
-            self.keydownmap |= self.keyflags[key]
+            self.keydownmap[self.keyflags[key]] = input_key
             self.parent.map.player.move_direction += self.direction_amounts[key]
 
-    def KeyUp(self,key):
-        if key in self.direction_amounts and (self.keydownmap & self.keyflags[key]):
-            self.keydownmap &= (~self.keyflags[key])
+    def KeyUp(self,input_key):
+        try:
+            key = self.translations[input_key]
+        except KeyError:
+            key = input_key
+
+        if self.keyflags[key] not in self.keydownmap:
+            return
+        if key in self.direction_amounts and (self.keydownmap[self.keyflags[key]] == input_key):
+            del self.keydownmap[self.keyflags[key]]
             self.parent.map.player.move_direction -= self.direction_amounts[key]
 
 class GameOver(Mode):
