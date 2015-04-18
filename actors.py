@@ -39,14 +39,15 @@ class Actor(object):
     def SetPos(self,pos):
         self.pos = pos
 
-        vertices = [((pos + corner)*globals.tile_dimensions).to_int() for corner in self.corners_euclid]
+        self.vertices = [((pos + corner)*globals.tile_dimensions).to_int() for corner in self.corners_euclid]
 
         #bl = pos * globals.tile_dimensions
         #tr = bl + (globals.tile_scale*Point(self.width,self.height))
         #bl = bl.to_int()
         #tr = tr.to_int()
         #self.quad.SetVertices(bl,tr,4)
-        self.quad.SetAllVertices(vertices, 4)
+        self.quad.SetAllVertices(self.vertices, 4)
+
 
     def set_angle(self, angle):
         self.angle = angle
@@ -112,6 +113,20 @@ class Actor(object):
     def GetPosCentre(self):
         return self.pos
 
+class Light(object):
+    def __init__(self,parent):
+        self.quad_buffer = drawing.QuadBuffer(4)
+        self.quad = drawing.Quad(self.quad_buffer)
+        self.parent = parent
+        self.colour = (1,1,1)
+        globals.lights.append(self)
+
+    @property
+    def pos(self):
+        return (self.parent.pos.x*globals.tile_dimensions.x,self.parent.pos.y*globals.tile_dimensions.y,10)
+
+    def Update(self,t):
+        self.quad.SetAllVertices(self.parent.vertices, 0)
 
 class Player(Actor):
     texture = 'player'
@@ -120,7 +135,7 @@ class Player(Actor):
 
     def __init__(self,map,pos):
         self.mouse_pos = Point(0,0)
-
+        self.light = Light(self)
         super(Player,self).__init__(map,pos)
 
     def Update(self,t):
@@ -129,6 +144,7 @@ class Player(Actor):
             globals.current_view.game_over = True
         self.UpdateMouse(self.mouse_pos,None)
         super(Player,self).Update(t)
+        self.light.Update(t)
 
     def UpdateMouse(self,pos,rel):
         diff = pos - (self.pos*globals.tile_dimensions)

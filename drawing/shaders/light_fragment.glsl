@@ -81,7 +81,6 @@ void main()
         //out_colour.a *= centre;
     }
     else if(3 == light_type){
-        //this is one for testing that follows the mouse
         vec3 world_light_pos = vec3( (light_pos.x+translation.x)*scale.x,
                                      (light_pos.y+translation.y)*scale.y,
                                      light_pos.z );
