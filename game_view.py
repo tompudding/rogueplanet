@@ -273,13 +273,21 @@ class GameView(ui.RootElement):
         self.viewpos = Viewpos(Point(100,400))
         self.player_direction = Point(0,0)
         self.game_over = False
-        self.mouse_pos = Point(0,0)
+        self.mouse_world = Point(0,0)
         #pygame.mixer.music.load('music.ogg')
         #self.music_playing = False
         super(GameView,self).__init__(Point(0,0),globals.screen)
         #skip titles for development of the main game
         self.mode = modes.Titles(self)
-        self.timeofday = TimeOfDay(0)
+        self.light      = drawing.Quad(globals.light_quads)
+        self.light.SetVertices(Point(0,0),
+                               globals.screen_abs - Point(0,0),
+                               0)
+        self.nightlight      = drawing.Quad(globals.nightlight_quads)
+        self.nightlight.SetVertices(Point(0,0),
+                               globals.screen_abs - Point(0,0),
+                               0.01)
+        self.timeofday = TimeOfDay(0.1)
         #self.mode = modes.LevelOne(self)
         self.StartMusic()
 
@@ -305,6 +313,7 @@ class GameView(ui.RootElement):
 
         self.t = t
         self.viewpos.Update(t)
+        #self.timeofday.t = float(t)/10000
 
         if self.viewpos._pos.x < 0:
             self.viewpos._pos.x = 0
@@ -315,8 +324,8 @@ class GameView(ui.RootElement):
         if self.viewpos._pos.y > (self.map.world_size.y - globals.screen.y):
             self.viewpos._pos.y = (self.map.world_size.y - globals.screen.y)
 
-        globals.mouse_world = self.viewpos.pos + self.mouse_pos
-        self.map.player.mouse_pos = globals.mouse_world
+        #globals.mouse_world = self.viewpos.pos + self.mouse_pos
+        self.map.player.mouse_pos = self.mouse_world
 
         self.map.player.Update(t)
 
@@ -342,7 +351,7 @@ class GameView(ui.RootElement):
         #if self.selected_player != None:
         #    self.selected_player.MouseMotion()
         world_pos = self.viewpos.pos + pos
-        #globals.mouse_screen = pos
+        self.mouse_world = world_pos
 
         self.mode.MouseMotion(world_pos,rel)
 
