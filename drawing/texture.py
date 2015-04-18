@@ -17,7 +17,7 @@ from globals.types import Point
 cache = {}
 global_scale = 0.25
 
-class Texture(object):
+class TextureImage(object):
     """ Load a file into a gltexture and store that texture for later use """
     def __init__(self,filename):
         #filename = os.path.join(globals.dirs.resource,filename)
@@ -40,6 +40,28 @@ class Texture(object):
             self.texture,self.width,self.height = cache[filename]
             glBindTexture(GL_TEXTURE_2D, self.texture)
 
+class Texture(object):
+    """ Load a (potential) group of textures  """
+    def __init__(self,filename,normal_filename = None, occlusion_filename = None, displacement_filename = None):
+        self.filenames = [filename]
+        for fname in normal_filename,occlusion_filename,displacement_filename:
+            if fname:
+                self.filenames.append(fname)
+        self.textures = [TextureImage(filename) for filename in self.filenames]
+        #They need to all be the same size...
+        if len(set((im.width,im.height) for im in self.textures)) != 1:
+            raise TypeError('Invalid texture sizes')
+
+        self.width = self.textures[0].width
+        self.height = self.textures[0].height
+        self.texture = self.textures[0].texture
+        for i,name in enumerate(('normal_texture','occlude_texture','displacement_texture')):
+            try:
+                t = self.textures[i+1].texture
+            except IndexError:
+                t = None
+            setattr(self,name,t)
+
 class RenderTarget(object):
     """
     Create a texture for rendering onto. Call Target on the object, do some rendering, then call
@@ -53,6 +75,7 @@ class RenderTarget(object):
         self.size = Point(x,y)
         self.screensize = screensize
         self.texture = glGenTextures(1)
+        glActiveTexture(GL_TEXTURE0)
         glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, self.fbo)
         glBindTexture(GL_TEXTURE_2D, self.texture)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
@@ -72,19 +95,8 @@ class RenderTarget(object):
         if glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT) != GL_FRAMEBUFFER_COMPLETE_EXT:
             print 'crapso1'
             raise SystemExit
-        glPushAttrib(GL_VIEWPORT_BIT)
-        glMatrixMode(GL_PROJECTION)
-        glLoadIdentity()
-        glOrtho(0, self.x, 0, self.y,-10000,10000)
-        glMatrixMode(GL_MODELVIEW)
-        glViewport(0,0,self.x, self.y)
 
     def Detarget(self):
-        glMatrixMode(GL_PROJECTION)
-        glLoadIdentity()
-        glOrtho(0, self.screensize.x, 0, self.screensize.y,-10000,10000)
-        glMatrixMode(GL_MODELVIEW)
-        glPopAttrib()
         glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0)
 
 
@@ -105,7 +117,9 @@ class SubImage(object):
 
 class TextureAtlas(object):
     def __init__(self,image_filename,data_filename):
-        self.texture = Texture(image_filename)
+        extra_names = [image_filename[:-4] + extra + image_filename[-4:] for extra in '_normal','_occlude','_displace']
+
+        self.texture = Texture(image_filename,*extra_names)
         self.subimages = {}
         #data_filename = os.path.join(globals.dirs.resource,data_filename)
         with open(data_filename,'rb') as f:
