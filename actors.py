@@ -135,5 +135,3 @@ class Player(Actor):
         distance,angle = cmath.polar(complex(diff.x,diff.y))
         self.set_angle(angle+math.pi)
 
-    def MouseMotion(self, pos, rel):
-        self.mouse_pos = pos

@@ -104,10 +104,6 @@ class GameMode(Mode):
             self.keydownmap &= (~self.keyflags[key])
             self.parent.map.player.move_direction -= self.direction_amounts[key]
 
-    def MouseMotion(self,pos,rel):
-        self.parent.map.player.MouseMotion(pos,rel)
-
-
 class GameOver(Mode):
     blurb = "GAME OVER"
     def __init__(self,parent):

@@ -224,6 +224,7 @@ class GameView(ui.RootElement):
         self.viewpos = Viewpos(Point(100,400))
         self.player_direction = Point(0,0)
         self.game_over = False
+        self.mouse_pos = Point(0,0)
         #pygame.mixer.music.load('music.ogg')
         #self.music_playing = False
         super(GameView,self).__init__(Point(0,0),globals.screen)
@@ -264,6 +265,9 @@ class GameView(ui.RootElement):
         if self.viewpos._pos.y > (self.map.world_size.y - globals.screen.y):
             self.viewpos._pos.y = (self.map.world_size.y - globals.screen.y)
 
+        mouse_screen_pos = self.viewpos.pos + self.mouse_pos
+        self.map.player.mouse_pos = mouse_screen_pos
+
         self.map.player.Update(t)
 
     def GameOver(self):
@@ -288,6 +292,8 @@ class GameView(ui.RootElement):
         #if self.selected_player != None:
         #    self.selected_player.MouseMotion()
         screen_pos = self.viewpos.pos + pos
+        self.mouse_pos = pos
+
         self.mode.MouseMotion(screen_pos,rel)
 
         return super(GameView,self).MouseMotion(pos,rel,handled)
