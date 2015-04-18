@@ -78,7 +78,7 @@ def main():
                 globals.current_view.KeyUp(event.key)
             else:
                 try:
-                    pos = Point(event.pos[0],globals.screen[1]-event.pos[1])
+                    pos = Point(float(event.pos[0])/globals.scale[0],globals.screen[1]-(float(event.pos[1])/globals.scale[1]))
                 except AttributeError:
                     continue
                 if event.type == pygame.MOUSEMOTION:

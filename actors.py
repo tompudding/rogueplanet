@@ -30,6 +30,7 @@ class Actor(object):
         self.corners_euclid = [p for p in self.corners]
         self.current_sound  = None
         self.last_update    = None
+        self.dead           = False
         self.move_speed     = Point(0,0)
         self.move_direction = Point(0,0)
         self.SetPos(pos)
@@ -109,10 +110,30 @@ class Actor(object):
         return self.pos
 
     def GetPosCentre(self):
-        return self.pos+self.size
+        return self.pos
+
 
 class Player(Actor):
     texture = 'player'
     width = 24
     height = 24
 
+    def __init__(self,map,pos):
+        self.mouse_pos = Point(0,0)
+
+        super(Player,self).__init__(map,pos)
+
+    def Update(self,t):
+        if self.dead:
+            globals.current_view.mode = modes.GameOver(globals.current_view)
+            globals.current_view.game_over = True
+        self.UpdateMouse(self.mouse_pos,None)
+        super(Player,self).Update(t)
+
+    def UpdateMouse(self,pos,rel):
+        diff = pos - (self.pos*globals.tile_dimensions)
+        distance,angle = cmath.polar(complex(diff.x,diff.y))
+        self.set_angle(angle+math.pi)
+
+    def MouseMotion(self, pos, rel):
+        self.mouse_pos = pos

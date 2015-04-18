@@ -283,3 +283,11 @@ class GameView(ui.RootElement):
                 pygame.mixer.music.set_volume(1)
         self.mode.KeyUp(key)
 
+    def MouseMotion(self,pos,rel,handled):
+        #print 'mouse',pos
+        #if self.selected_player != None:
+        #    self.selected_player.MouseMotion()
+        screen_pos = self.viewpos.pos + pos
+        self.mode.MouseMotion(screen_pos,rel)
+
+        return super(GameView,self).MouseMotion(pos,rel,handled)

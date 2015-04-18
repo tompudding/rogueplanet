@@ -13,6 +13,9 @@ class Mode(object):
     def KeyDown(self,key):
         pass
 
+    def MouseMotion(self,pos,rel):
+        pass
+
     def KeyUp(self,key):
         pass
 
@@ -100,6 +103,9 @@ class GameMode(Mode):
         if key in self.direction_amounts and (self.keydownmap & self.keyflags[key]):
             self.keydownmap &= (~self.keyflags[key])
             self.parent.map.player.move_direction -= self.direction_amounts[key]
+
+    def MouseMotion(self,pos,rel):
+        self.parent.map.player.MouseMotion(pos,rel)
 
 
 class GameOver(Mode):
