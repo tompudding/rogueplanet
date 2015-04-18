@@ -11,7 +11,7 @@ uniform int light_type;
 uniform vec3 ambient_colour;
 uniform vec3 directional_light_dir;
 uniform vec3 light_colour;
-uniform vec3 cone_dir;
+uniform float cone_dir;
 uniform float cone_width;
 uniform float ambient_attenuation;
 uniform vec2 translation;
@@ -66,6 +66,10 @@ void main()
         float blur = 0.003;//(1/256.)*smoothstep(0.,1.,r);
         float sum = centre * 0.16;
         int i;
+        float cone_diff = abs(theta - cone_dir);
+        if(theta > cone_width) {
+            discard;
+        }
 
         for(i=0;i<NUM_VALUES;i++) {
             sum += sample(vec2(tc.x - (NUM_VALUES-i)*blur, tc.y), r) * values[i];
@@ -102,20 +106,25 @@ void main()
                                      (light_pos.y+translation.y)*scale.y,
                                      light_pos.z );
         vec2 adjust_xy = world_light_pos.xy-current_pos.xy;
-        float theta = abs(atan(-adjust_xy.y,-adjust_xy.x) - cone_dir);
-        vec3 intensity;
-        if(theta > cone_width) {
-            intensity = vec3(0,0,0);
+        float theta = atan(-adjust_xy.y,-adjust_xy.x) - cone_dir;
+        if(theta > PI) {
+            theta -= 2*PI;
         }
-        else {
-            //adjust_xy.y *= 1.41;
-            //todo: use a height map to get the z coord
-            vec3 light_dir = normalize(world_light_pos-current_pos);
-            vec3 diffuse = light_colour*max(dot(light_dir,normal),0.0);
-            float distance = min(length(adjust_xy)/400.0,1);
-            intensity = diffuse*(1-distance*distance)*(1-ambient_attenuation);
-            //out_colour = mix(vec4(0,0,0,1),colour,value);
+        if(theta < -PI) {
+            theta += 2*PI;
         }
+        if(abs(theta) > cone_width) {
+            discard;
+        }
+
+        //adjust_xy.y *= 1.41;
+        //todo: use a height map to get the z coord
+        vec3 light_dir = normalize(world_light_pos-current_pos);
+        vec3 diffuse = light_colour*max(dot(light_dir,normal),0.0);
+        float distance = min(length(adjust_xy)/400.0,1);
+        vec3 intensity = diffuse*(1-distance*distance)*(1-ambient_attenuation);
+        //out_colour = mix(vec4(0,0,0,1),colour,value);
+
         out_colour = vec4(colour.rgb*intensity,1);
     }
 

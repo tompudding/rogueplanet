@@ -225,6 +225,8 @@ def Init(w,h):
                                   'ambient_colour',
                                   'ambient_attenuation',
                                   'directional_light_dir',
+                                  'cone_dir',
+                                  'cone_width',
                                   'light_colour'),
                       attributes = ('vertex_data',))
 
@@ -373,6 +375,8 @@ def EndFrameGameMode():
     glUniform1i(light_shader.locations.light_type, 2)
     glUniform3f(light_shader.locations.light_pos, globals.mouse_screen.x, globals.mouse_screen.y,200)
     glUniform3f(light_shader.locations.light_colour, 1,1,1)
+    glUniform1f(light_shader.locations.cone_dir, 0)
+    glUniform1f(light_shader.locations.cone_width, 70)
     glVertexAttribPointer( light_shader.locations.vertex_data, 3, GL_FLOAT, GL_FALSE, 0, quad_buffer.vertex_data )
     globals.mouse_light_quad.SetVertices(globals.mouse_screen - Point(400,400),
                                          globals.mouse_screen + Point(400,400),0.1)
@@ -383,7 +387,6 @@ def EndFrameGameMode():
     Translate(-globals.game_view.viewpos.pos.x,-globals.game_view.viewpos.pos.y,0)
     glUniform1i(light_shader.locations.light_type, 3)
     for light in globals.lights:
-        #glUniform3f(light_shader.locations.light_pos, 100,100,10)
         glUniform3f(light_shader.locations.light_pos, *light.pos)
         glUniform3f(light_shader.locations.light_colour, *light.colour)
         glVertexAttribPointer( light_shader.locations.vertex_data, 3, GL_FLOAT, GL_FALSE, 0, light.quad_buffer.vertex_data )
@@ -394,7 +397,7 @@ def EndFrameGameMode():
         glUniform3f(light_shader.locations.light_pos, *light.pos)
         glUniform3f(light_shader.locations.light_colour, *light.colour)
         glUniform1f(light_shader.locations.cone_dir, light.angle)
-        glUniform1f(light_shader.locations.cone_width, light.width)
+        glUniform1f(light_shader.locations.cone_width, light.angle_width)
 
         glVertexAttribPointer( light_shader.locations.vertex_data, 3, GL_FLOAT, GL_FALSE, 0, light.quad_buffer.vertex_data )
         glDrawElements(GL_QUADS,light.quad_buffer.current_size,GL_UNSIGNED_INT,light.quad_buffer.indices)

@@ -119,7 +119,6 @@ class BaseLight(object):
         self.quad = drawing.Quad(self.quad_buffer)
         self.parent = parent
         self.colour = (1,1,1)
-        globals.lights.append(self)
 
     @property
     def pos(self):
@@ -133,10 +132,31 @@ class Light(BaseLight):
         super(Light,self).__init__(parent)
         globals.lights.append(self)
 
-class ConeLight(BaseLight):
+class ConeLight(object):
+    width = 400
+    height = 400
     def __init__(self,parent):
-        super(Light,self).__init__(parent)
+        self.quad_buffer = drawing.QuadBuffer(4)
+        self.quad = drawing.Quad(self.quad_buffer)
+        self.parent = parent
+        self.colour = (1,1,1)
+        self.angle = 0.0
+        self.angle_width = 0.5
         globals.cone_lights.append(self)
+
+    @property
+    def pos(self):
+        return (self.parent.pos.x*globals.tile_dimensions.x,self.parent.pos.y*globals.tile_dimensions.y,10)
+
+    def Update(self,t):
+        box = (globals.tile_scale*Point(self.width,self.height))
+        bl = (self.parent.pos * globals.tile_dimensions) - box*0.5
+        tr = bl + box
+        bl = bl.to_int()
+        tr = tr.to_int()
+        self.quad.SetVertices(bl,tr,4)
+        #self.quad.SetAllVertices(self.parent.vertices, 0)
+
 
 class Player(Actor):
     texture = 'player'
@@ -145,7 +165,8 @@ class Player(Actor):
 
     def __init__(self,map,pos):
         self.mouse_pos = Point(0,0)
-        self.light = Light(self)
+        #self.light = Light(self)
+        self.torch = ConeLight(self)
         super(Player,self).__init__(map,pos)
 
     def Update(self,t):
@@ -154,10 +175,12 @@ class Player(Actor):
             globals.current_view.game_over = True
         self.UpdateMouse(self.mouse_pos,None)
         super(Player,self).Update(t)
-        self.light.Update(t)
+        #self.light.Update(t)
+        self.torch.Update(t)
 
     def UpdateMouse(self,pos,rel):
         diff = pos - (self.pos*globals.tile_dimensions)
         distance,angle = cmath.polar(complex(diff.x,diff.y))
         self.set_angle(angle+math.pi)
+        self.torch.angle = angle
 
