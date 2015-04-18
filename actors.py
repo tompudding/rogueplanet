@@ -18,14 +18,16 @@ class Actor(object):
     width   = None
     height  = None
     def __init__(self,map,pos):
-        self.map  = map
-        self.tc = globals.atlas.TextureSpriteCoords('%s.png' % self.texture)
-        self.quad = drawing.Quad(globals.quad_buffer,tc = self.tc)
-        self.size = Point(float(self.width)/16,float(self.height)/16)
-        self.corners = Point(0,0),Point(self.size.x,0),Point(0,self.size.y),self.size
+        self.map            = map
+        self.tc             = globals.atlas.TextureSpriteCoords('%s.png' % self.texture)
+        self.quad           = drawing.Quad(globals.quad_buffer,tc = self.tc)
+        self.size           = Point(float(self.width)/16,float(self.height)/16)
+        self.corners        = Point(0,0),Point(self.size.x,0),Point(0,self.size.y),self.size
+        self.current_sound  = None
+        self.last_update    = None
+        self.move_speed     = Point(0,0)
+        self.move_direction = Point(0,0)
         self.SetPos(pos)
-        self.current_sound = None
-        self.last_update = None
 
     def SetPos(self,pos):
         self.pos = pos
@@ -35,13 +37,20 @@ class Actor(object):
         tr = tr.to_int()
         self.quad.SetVertices(bl,tr,4)
 
-    def Move(self,amount):
+    def Update(self,t):
+        self.Move(t)
+
+    def Move(self,t):
         if self.last_update == None:
             self.last_update = globals.time
             return
         elapsed = globals.time - self.last_update
         self.last_update = globals.time
-        amount = Point(amount.x*elapsed*0.05,amount.y*elapsed*0.05)
+
+        self.move_speed += self.move_direction*elapsed*globals.time_step
+        self.move_speed *= 0.7*(1-(elapsed/1000.0))
+
+        amount = Point(self.move_speed.x*elapsed*globals.time_step,self.move_speed.y*elapsed*globals.time_step)
 
         #check each of our four corners
         for corner in self.corners:
@@ -88,6 +97,6 @@ class Actor(object):
 
 class Player(Actor):
     texture = 'player'
-    width = 12
-    height = 12
+    width = 24
+    height = 24
 

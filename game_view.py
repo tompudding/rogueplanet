@@ -221,7 +221,7 @@ class GameView(ui.RootElement):
         self.atlas = globals.atlas = drawing.texture.TextureAtlas('tiles_atlas_0.png','tiles_atlas.txt')
         self.map = GameMap('level1.txt',self)
         self.map.world_size = self.map.size * globals.tile_dimensions
-        self.viewpos = Viewpos(Point(915,0))
+        self.viewpos = Viewpos(Point(100,400))
         self.player_direction = Point(0,0)
         self.game_over = False
         #pygame.mixer.music.load('music.ogg')
@@ -264,7 +264,7 @@ class GameView(ui.RootElement):
         if self.viewpos._pos.y > (self.map.world_size.y - globals.screen.y):
             self.viewpos._pos.y = (self.map.world_size.y - globals.screen.y)
 
-        self.map.player.Move(self.player_direction)
+        self.map.player.Update(t)
 
     def GameOver(self):
         self.game_over = True

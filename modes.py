@@ -58,7 +58,7 @@ class Titles(Mode):
     def Update(self,t):
         self.elapsed = t - self.start
         self.stage = self.handlers[self.stage](t)
-        #self.stage = TitleStages.COMPLETE
+        self.stage = TitleStages.COMPLETE
 
     def Complete(self,t):
         self.backdrop.Delete()
@@ -71,7 +71,7 @@ class Titles(Mode):
         return TitleStages.STARTED
 
 class GameMode(Mode):
-    speed = 8
+    speed = 10
     direction_amounts = {pygame.K_LEFT  : Point(-0.01*speed, 0.00),
                          pygame.K_RIGHT : Point( 0.01*speed, 0.00),
                          pygame.K_UP    : Point( 0.00, 0.01*speed),
@@ -94,12 +94,12 @@ class GameMode(Mode):
     def KeyDown(self,key):
         if key in self.direction_amounts:
             self.keydownmap |= self.keyflags[key]
-            self.parent.player_direction += self.direction_amounts[key]
+            self.parent.map.player.move_direction += self.direction_amounts[key]
 
     def KeyUp(self,key):
         if key in self.direction_amounts and (self.keydownmap & self.keyflags[key]):
             self.keydownmap &= (~self.keyflags[key])
-            self.parent.player_direction -= self.direction_amounts[key]
+            self.parent.map.player.move_direction -= self.direction_amounts[key]
 
 
 class GameOver(Mode):
