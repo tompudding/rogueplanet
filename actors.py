@@ -113,7 +113,7 @@ class Actor(object):
     def GetPosCentre(self):
         return self.pos
 
-class Light(object):
+class BaseLight(object):
     def __init__(self,parent):
         self.quad_buffer = drawing.QuadBuffer(4)
         self.quad = drawing.Quad(self.quad_buffer)
@@ -127,6 +127,16 @@ class Light(object):
 
     def Update(self,t):
         self.quad.SetAllVertices(self.parent.vertices, 0)
+
+class Light(BaseLight):
+    def __init__(self,parent):
+        super(Light,self).__init__(parent)
+        globals.lights.append(self)
+
+class ConeLight(BaseLight):
+    def __init__(self,parent):
+        super(Light,self).__init__(parent)
+        globals.cone_lights.append(self)
 
 class Player(Actor):
     texture = 'player'
