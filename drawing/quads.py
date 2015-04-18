@@ -76,6 +76,25 @@ class ShapeBuffer(object):
 class QuadBuffer(ShapeBuffer):
     num_points = 4
     draw_type = drawing.opengl.GL_QUADS
+    def __init__(self,size,ui = False,mouse_relative = False):
+        self.is_ui = ui
+        self.mouse_relative = mouse_relative
+        super(QuadBuffer,self).__init__(size)
+
+class ShadowQuadBuffer(QuadBuffer):
+    def NewLight(self):
+        print 'a',self.current_size
+        row = self.current_size / self.num_points
+        light = Quad(self)
+        #Now set the vertices for the next line ...
+        #bl = Point(0,row)
+        #tr = Point(drawing.opengl.ShadowMapBuffer.WIDTH,row+1)
+        bl = Point(0,0)
+        tr = Point(drawing.opengl.ShadowMapBuffer.WIDTH,drawing.opengl.ShadowMapBuffer.HEIGHT)
+        light.SetVertices(bl,tr,0)
+        print 'b',self.current_size
+        return light
+
 
 class LineBuffer(ShapeBuffer):
     num_points = 2

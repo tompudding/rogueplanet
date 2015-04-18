@@ -214,7 +214,7 @@ class TextManager(object):
         #self.atlas = TextureAtlas(fontname,fontdataname)
         self.atlas = PetsciiAtlas('petscii.png')
         self.font_height = max(subimage.size.y for subimage in self.atlas.subimages.values())
-        self.quads = quads.QuadBuffer(131072) #these are reclaimed when out of use so this means 131072 concurrent chars
+        self.quads = quads.QuadBuffer(131072, ui=True) #these are reclaimed when out of use so this means 131072 concurrent chars
         TextTypes.BUFFER = {TextTypes.SCREEN_RELATIVE : self.quads,
                             TextTypes.GRID_RELATIVE   : globals.nonstatic_text_buffer,
                             TextTypes.MOUSE_RELATIVE  : globals.mouse_relative_buffer}
@@ -251,7 +251,7 @@ class TextManager(object):
 
     def Draw(self):
         glLoadIdentity()
-        opengl.DrawAll(self.quads,self.atlas.texture.texture)
+        opengl.DrawAll(self.quads,self.atlas.texture)
 
     def Purge(self):
         self.quads.truncate(0)

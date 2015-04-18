@@ -218,7 +218,52 @@ class GameMap(object):
         for tile in obj.CoveredTiles():
             self.object_cache[tile] = obj
 
+class TimeOfDay(object):
+    def __init__(self,t):
+        self.Set(t)
 
+    def Set(self,t):
+        self.t = t
+
+    def Daylight(self):
+        #Direction will be
+        a_k = 0.2
+        d_k = 0.4
+        r = 1000
+        b = -1.5
+        t = (self.t+0.75)%1.0
+        a = t*math.pi*2
+        z = math.sin(a)*r
+        p = math.cos(a)*r
+        x = math.cos(b)*p
+        y = math.sin(b)*p
+        if t < 0.125:
+            #dawn
+            colour  = [d_k*math.sin(40*t/math.pi) for i in (0,1,2)]
+            ambient = [a_k*math.sin(40*t/math.pi) for i in (0,1,2)]
+        elif t < 0.375:
+            #daylight
+            colour = (d_k,d_k,d_k)
+            ambient = (a_k,a_k,a_k)
+        elif t < 0.5:
+            #dusk
+            colour = (d_k*math.sin(40*(t+0.25)/math.pi) for i in (0,1,2))
+            ambient = [a_k*math.sin(40*(t+0.25)/math.pi) for i in (0,1,2)]
+        else:
+            x,y,z = (1,1,1)
+            colour = (0,0,0)
+            ambient = (0,0,0)
+
+        return (-x,-y,-z),colour,ambient,ambient[0]/a_k
+
+    def Ambient(self):
+        t = (self.t+0.75)%1.0
+        return (0.5,0.5,0.5)
+
+    def Nightlight(self):
+        #Direction will be
+
+        return (1,3,-5),(0.25,0.25,0.4)
 
 class GameView(ui.RootElement):
     def __init__(self):
@@ -234,6 +279,7 @@ class GameView(ui.RootElement):
         super(GameView,self).__init__(Point(0,0),globals.screen)
         #skip titles for development of the main game
         self.mode = modes.Titles(self)
+        self.timeofday = TimeOfDay(0)
         #self.mode = modes.LevelOne(self)
         self.StartMusic()
 
@@ -245,10 +291,10 @@ class GameView(ui.RootElement):
     def Draw(self):
         drawing.ResetState()
         drawing.Translate(-self.viewpos.pos.x,-self.viewpos.pos.y,0)
-        drawing.DrawAll(globals.quad_buffer,self.atlas.texture.texture)
+        drawing.DrawAll(globals.quad_buffer,self.atlas.texture)
         #drawing.DrawNoTexture(globals.line_buffer)
         #drawing.DrawNoTexture(globals.colour_tiles)
-        drawing.DrawAll(globals.nonstatic_text_buffer,globals.text_manager.atlas.texture.texture)
+        drawing.DrawAll(globals.nonstatic_text_buffer,globals.text_manager.atlas.texture)
 
     def Update(self,t):
         if self.mode:
@@ -269,8 +315,8 @@ class GameView(ui.RootElement):
         if self.viewpos._pos.y > (self.map.world_size.y - globals.screen.y):
             self.viewpos._pos.y = (self.map.world_size.y - globals.screen.y)
 
-        mouse_screen_pos = self.viewpos.pos + self.mouse_pos
-        self.map.player.mouse_pos = mouse_screen_pos
+        globals.mouse_screen = self.viewpos.pos + self.mouse_pos
+        self.map.player.mouse_pos = globals.mouse_screen
 
         self.map.player.Update(t)
 

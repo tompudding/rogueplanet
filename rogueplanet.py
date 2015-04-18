@@ -13,17 +13,30 @@ def Init():
     globals.scale                 = Point(2,2)
     globals.screen                = Point(w,h)/globals.scale
     globals.screen_root           = ui.UIRoot(Point(0,0),globals.screen)
+    globals.lights                = []
+
     globals.quad_buffer           = drawing.QuadBuffer(131072)
-    globals.screen_texture_buffer = drawing.QuadBuffer(131072)
-    globals.ui_buffer             = drawing.QuadBuffer(131072)
-    globals.nonstatic_text_buffer = drawing.QuadBuffer(131072)
+    globals.screen_texture_buffer = drawing.QuadBuffer(131072, ui=True)
+    globals.ui_buffer             = drawing.QuadBuffer(131072, ui=True)
+    globals.nonstatic_text_buffer = drawing.QuadBuffer(131072, ui=True)
+    globals.light_quads           = drawing.QuadBuffer(16384)
+    globals.nightlight_quads      = drawing.QuadBuffer(16)
+    globals.temp_mouse_light      = drawing.QuadBuffer(16)
     globals.colour_tiles          = drawing.QuadBuffer(131072)
-    globals.mouse_relative_buffer = drawing.QuadBuffer(1024)
+    globals.mouse_relative_buffer = drawing.QuadBuffer(1024, ui=True, mouse_relative=True)
     globals.line_buffer           = drawing.LineBuffer(16384)
+    globals.shadow_quadbuffer     = drawing.ShadowQuadBuffer(256*4)
+    globals.temp_mouse_shadow     = globals.shadow_quadbuffer.NewLight()
     globals.tile_dimensions       = Point(16,16)*globals.tile_scale
     globals.sounds                = sounds.Sounds()
     globals.zoom_scale            = None
     globals.time_step             = 0.05
+
+    #WTF?
+    globals.mouse_light_quad = drawing.Quad(globals.temp_mouse_light)
+    globals.mouse_light_quad.SetVertices(Point(0,0),
+                                             Point(500,500),10)
+    #globals.mouse_light_quad.Disable()
 
     globals.dirs = globals.types.Directories('resource')
 
@@ -43,6 +56,7 @@ def main():
     done = False
     last = 0
     clock = pygame.time.Clock()
+    drawing.InitDrawing()
 
     while not done:
         drawing.NewFrame()
@@ -58,6 +72,7 @@ def main():
         globals.current_view.Draw()
         globals.screen_root.Draw()
         globals.text_manager.Draw()
+        drawing.EndFrame()
         pygame.display.flip()
 
         eventlist = pygame.event.get()
