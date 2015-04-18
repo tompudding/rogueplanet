@@ -336,7 +336,7 @@ def EndFrameGameMode():
 
     #Now do the other lights with shadows
     for light in itertools.chain(globals.lights,globals.cone_lights):
-        glUniform2f(shadow_shader.locations.light_pos, *light.pos)
+        glUniform2f(shadow_shader.locations.light_pos, *light.screen_pos)
         glVertexAttribPointer( shadow_shader.locations.vertex_data, 3, GL_FLOAT, GL_FALSE, 0, quad_buffer.vertex_data )
         glDrawElements(GL_QUADS,4,GL_UNSIGNED_INT,quad_buffer.indices[light.shadow_index*4:])
 
@@ -400,11 +400,10 @@ def EndFrameGameMode():
         glVertexAttribPointer( light_shader.locations.vertex_data, 3, GL_FLOAT, GL_FALSE, 0, light.quad_buffer.vertex_data )
         glDrawElements(GL_QUADS,light.quad_buffer.current_size,GL_UNSIGNED_INT,light.quad_buffer.indices)
 
-    glUniform1i(light_shader.locations.light_type, 4)
+    glUniform1i(light_shader.locations.light_type, 2)
     for light in globals.cone_lights:
-        print light.shadow_index
         glUniform1i(light_shader.locations.shadow_index, light.shadow_index)
-        glUniform3f(light_shader.locations.light_pos, *light.pos)
+        glUniform3f(light_shader.locations.light_pos, *(light.screen_pos + (10,)))
         glUniform3f(light_shader.locations.light_colour, *light.colour)
         glUniform1f(light_shader.locations.cone_dir, light.angle)
         glUniform1f(light_shader.locations.cone_width, light.angle_width)

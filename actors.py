@@ -155,7 +155,7 @@ class ConeLight(object):
     @property
     def screen_pos(self):
         p = self.pos
-        return (p[0] - globals.game_view.viewpos._pos.x,p[1]-globals.game_view.viewpos._pos.y)
+        return ((p[0] - globals.game_view.viewpos._pos.x)*globals.scale.x,(p[1]-globals.game_view.viewpos._pos.y)*globals.scale.y)
 
     def Update(self,t):
         box = (globals.tile_scale*Point(self.width,self.height))

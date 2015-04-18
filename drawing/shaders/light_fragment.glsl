@@ -60,14 +60,28 @@ void main()
         //this is one for testing that follows the mouse
         vec2 adjust_xy = light_pos.xy-current_pos.xy;
         float theta = atan(-adjust_xy.y,-adjust_xy.x);
+        float theta_diff = theta - cone_dir;
         float r = length(adjust_xy)*0.95;
         float coord = (PI-theta) / (2.0*PI);
         vec2 tc = vec2(coord,shadow_index*3.0/(256.0));
         float centre = sample(tc,r);
         float blur = 0.003;//(1/256.)*smoothstep(0.,1.,r);
         float sum = centre * 0.16;
+        float falloff = 0.0;
         int i;
-
+        if(theta_diff > PI) {
+            theta_diff -= 2*PI;
+        }
+        if(theta_diff < -PI) {
+            theta_diff += 2*PI;
+        }
+        if(abs(theta_diff) > cone_width) {
+            discard;
+        }
+        if(abs(theta_diff) > cone_width-0.2) {
+            falloff = (abs(theta_diff)-(cone_width-0.2))/0.2;
+            falloff *= falloff;
+        }
         for(i=0;i<NUM_VALUES;i++) {
             sum += sample(vec2(tc.x - (NUM_VALUES-i)*blur, tc.y), r) * values[i];
             sum += sample(vec2(tc.x - (i+1)*blur, tc.y), r) * values[NUM_VALUES-1-i];
@@ -78,7 +92,7 @@ void main()
         vec3 light_dir = normalize(light_pos-current_pos);
         vec3 diffuse = light_colour*max(dot(light_dir,normal),0.0);
         float distance = min(length(adjust_xy)/400.0,1);
-        vec3 intensity = diffuse*(1-distance*distance)*(1-ambient_attenuation);
+        vec3 intensity = diffuse*(1-distance*distance)*(1-ambient_attenuation)*(1-falloff);
         //out_colour = mix(vec4(0,0,0,1),colour,value);
         out_colour = vec4(colour.rgb*intensity*sum,1);
         //out_colour.a *= centre;
@@ -103,7 +117,7 @@ void main()
                                      (light_pos.y+translation.y)*scale.y,
                                      light_pos.z );
         vec2 adjust_xy = world_light_pos.xy-current_pos.xy;
-        float theta = atan(-adjust_xy.y,-adjust_xy.x) - cone_dir;
+        float theta = atan(-adjust_xy.y,-adjust_xy.x);
         float theta_diff = theta - cone_dir;
         float r = length(adjust_xy)*0.95;
         float coord = (PI-theta) / (2.0*PI);
@@ -139,7 +153,7 @@ void main()
         vec3 intensity = diffuse*(1-distance*distance)*(1-ambient_attenuation)*(1-falloff);
         //out_colour = mix(vec4(0,0,0,1),colour,value);
 
-        out_colour = vec4(colour.rgb*intensity*sum,1);
+        out_colour = vec4(colour.rgb*intensity,1);
     }
 
     //out_colour = mix(out_colour,occlude,0.1);
