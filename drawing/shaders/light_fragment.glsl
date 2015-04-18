@@ -1,4 +1,4 @@
-#version 330
+#version 150
 
 uniform sampler2D colour_map;
 uniform sampler2D displacement_map;
@@ -11,6 +11,8 @@ uniform int light_type;
 uniform vec3 ambient_colour;
 uniform vec3 directional_light_dir;
 uniform vec3 light_colour;
+uniform vec3 cond_dir;
+uniform float cone_width;
 uniform float ambient_attenuation;
 uniform vec2 translation;
 uniform vec2 scale;

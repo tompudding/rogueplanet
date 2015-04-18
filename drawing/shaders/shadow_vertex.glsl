@@ -1,4 +1,4 @@
-#version 330
+#version 150
 uniform vec3 sb_dimensions;
 in vec3 vertex_data;
 

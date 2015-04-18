@@ -1,4 +1,6 @@
-#version 330
+#version 150
+#extension GL_ARB_explicit_attrib_location : require
+#extension GL_ARB_explicit_uniform_location : require
 
 uniform sampler2D tex;
 uniform sampler2D normal_tex;
