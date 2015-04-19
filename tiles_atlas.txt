@@ -3,6 +3,9 @@ resource/sprites/player.png:tiles_atlas_0.png:32:1000.0:24:24
 resource/sprites/enemy.png:tiles_atlas_0.png:56:1000.0:24:24
 resource/sprites/door_closed.png:tiles_atlas_0.png:0:960.0:16:32
 resource/sprites/door_open.png:tiles_atlas_0.png:16:960.0:16:32
-resource/sprites/grass.png:tiles_atlas_0.png:80:1008.0:16:16
-resource/sprites/tile.png:tiles_atlas_0.png:96:1008.0:16:16
-resource/sprites/wall.png:tiles_atlas_0.png:112:1008.0:16:16
+resource/sprites/health_station.png:tiles_atlas_0.png:80:1008.0:16:16
+resource/sprites/wall.png:tiles_atlas_0.png:96:1008.0:16:16
+resource/sprites/redalert_station.png:tiles_atlas_0.png:112:1008.0:16:16
+resource/sprites/recharge_station.png:tiles_atlas_0.png:128:1008.0:16:16
+resource/sprites/grass.png:tiles_atlas_0.png:144:1008.0:16:16
+resource/sprites/tile.png:tiles_atlas_0.png:160:1008.0:16:16

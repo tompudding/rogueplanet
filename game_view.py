@@ -142,8 +142,12 @@ class TileTypes:
     DOOR_OPEN           = 9,
     SENTRY_LIGHT        = 10,
     CRATE               = 11,
+    HEALTH_STATION      = 12,
+    ENEMY               = 13,
+    RECHARGE_STATION    = 14,
+    REDALERT_STATION    = 15
 
-    Impassable = set([WALL, PANELS, CHAIR, DOOR_CLOSED, CRATE])
+    Impassable = set([WALL, PANELS, CHAIR, DOOR_CLOSED, CRATE, HEALTH_STATION, REDALERT_STATION, RECHARGE_STATION])
     Doors = set([DOOR_CLOSED, DOOR_OPEN])
 
 class TileData(object):
@@ -154,6 +158,9 @@ class TileData(object):
                      TileTypes.CHAIR         : 'tile.png',
                      TileTypes.PLAYER        : 'tile.png',
                      TileTypes.CRATE         : 'crate.png',
+                     TileTypes.HEALTH_STATION : 'health_station.png',
+                     TileTypes.RECHARGE_STATION : 'recharge_station.png',
+                     TileTypes.REDALERT_STATION : 'redalert_station.png',
                      TileTypes.DOOR_CLOSED   : 'door_closed.png',
                      TileTypes.DOOR_OPEN     : 'door_open.png'}
 
@@ -226,11 +233,54 @@ class Door(TileData):
             self.Toggle()
         return True
 
+class HealthStation(TileData):
+    def Interact(self,player):
+        if player.health == player.initial_health:
+            #tell the player that something would have happened
+            pass
+        else:
+            extra = player.initial_health - player.health
+            player.AdjustHealth(extra)
+        return True
+
+class RechargeStation(TileData):
+    def Interact(self,player):
+        if not player.info_box.torch_data.enabled:
+            #play sound
+            return
+        if player.torch.level == player.torch.max_level:
+            #tell the player that something would have happened
+            pass
+        else:
+            extra = player.torch.max_level - player.torch.level
+            player.torch.adjust_level(extra)
+        return True
+
+class RedAlertStation(TileData):
+    def __init__(self, type, pos, last_type, parent):
+        self.red_alert = False
+        super(RedAlertStation, self).__init__(type, pos, last_type, parent)
+    def Toggle(self):
+        if self.red_alert:
+            self.red_alert = False
+            for light in globals.game_view.sentry_lights + globals.lights:
+                light.colour = (1,1,1)
+            #globals.sounds.dooropen.play()
+        else:
+            self.red_alert = True
+            for light in globals.game_view.sentry_lights + globals.lights:
+                light.colour = (1,0,0)
+
+
+    def Interact(self,player):
+        self.Toggle()
+        return True
+
+
 class Crate(TileData):
-    duration = 1000
+    duration = 2000
     def __init__(self, type, pos, last_type, parent):
         super(Crate, self).__init__(type, pos, last_type, parent)
-        self.light = actors.FixedLight( self.pos, self.size )
         self.player = None
         self.interact_count = 0
 
@@ -257,13 +307,32 @@ class Crate(TileData):
         self.interact_count += 1
 
 class TorchCrate(Crate):
+    def __init__(self, type, pos, last_type, parent):
+        super(TorchCrate,self).__init__(type, pos, last_type, parent)
+        self.light = actors.FixedLight( self.pos, self.size )
     def Interacted(self):
         super(TorchCrate, self).Interacted()
         print 'jim',self.interact_count,self.player
         if self.interact_count == 1 and self.player:
             self.player.AddItem(actors.TorchItem(self.player))
 
+class FlareCrate(Crate):
+    duration = 1000
+
+class CommsCrate(Crate):
+    duration = 10000
+
+class BatteriesCrate(Crate):
+    duration = 2000
+
+class TiliumCrate(Crate):
+    duration = 10000
+
+crate_types = [BatteriesCrate, TorchCrate, CommsCrate, FlareCrate, TiliumCrate]
+
 def TileDataFactory(map,type,pos,last_type,parent):
+    #Why don't I just use a dictionary for this?
+
     if type in TileTypes.Doors:
         return Door(type, pos, last_type,parent)
     elif type == TileTypes.LIGHT:
@@ -271,7 +340,14 @@ def TileDataFactory(map,type,pos,last_type,parent):
     elif type == TileTypes.SENTRY_LIGHT:
         return SentryLightTile(type,pos,last_type,parent)
     elif type == TileTypes.CRATE:
-        return TorchCrate(type, pos, last_type, parent)
+        crate_type = crate_types.pop(0)
+        return crate_type(type, pos, last_type, parent)
+    elif type == TileTypes.HEALTH_STATION:
+        return HealthStation(type, pos, last_type, parent)
+    elif type == TileTypes.REDALERT_STATION:
+        return RedAlertStation(type, pos, last_type, parent)
+    elif type == TileTypes.RECHARGE_STATION:
+        return RechargeStation(type, pos, last_type, parent)
     return TileData(type,pos,last_type,parent)
 
 class GameMap(object):
@@ -285,11 +361,15 @@ class GameMap(object):
                      'c' : TileTypes.CHAIR,
                      's' : TileTypes.SENTRY_LIGHT,
                      'd' : TileTypes.DOOR_CLOSED,
+                     'h' : TileTypes.HEALTH_STATION,
+                     'r' : TileTypes.RECHARGE_STATION,
+                     'R' : TileTypes.REDALERT_STATION,
                      'l' : TileTypes.LIGHT,
+                     'e' : TileTypes.ENEMY,
                      'C' : TileTypes.CRATE}
 
     def __init__(self,name,parent):
-        self.size   = Point(89,49)
+        self.size   = Point(120,50)
         self.data   = [[TileTypes.GRASS for i in xrange(self.size.y)] for j in xrange(self.size.x)]
         self.object_cache = {}
         self.object_list = []
@@ -324,6 +404,8 @@ class GameMap(object):
                                     self.data[x+tile_x][y+tile_y] = td
                         if self.input_mapping[tile] == TileTypes.PLAYER:
                             player_pos = Point(x+0.2,y)
+                        if self.input_mapping[tile] == TileTypes.ENEMY:
+                            self.parent.enemy_positions.append(Point(x+0.2,y))
                     #except KeyError:
                     #    raise globals.types.FatalError('Invalid map data')
                 y -= 1
@@ -412,6 +494,7 @@ class GameView(ui.RootElement):
         self.atlas = globals.atlas = drawing.texture.TextureAtlas('tiles_atlas_0.png','tiles_atlas.txt')
         self.sentry_lights = []
         globals.ui_atlas = drawing.texture.TextureAtlas('ui_atlas_0.png','ui_atlas.txt',extra_names=False)
+        self.enemy_positions = []
         self.map = GameMap('level1.txt',self)
         self.map.world_size = self.map.size * globals.tile_dimensions
         self.viewpos = Viewpos(Point(100,400))
@@ -436,7 +519,7 @@ class GameView(ui.RootElement):
         #self.mode = modes.LevelOne(self)
         self.StartMusic()
         self.enemies = []
-        self.fixed_light = actors.FixedLight( Point(11,37),Point(26,9) )
+        self.fixed_light = actors.FixedLight( Point(11,38),Point(26,9) )
         self.interact_box = ui.Box(parent = globals.screen_root,
                                    pos = Point(0.3,0.4),
                                    tr = Point(0.7,0.6),
@@ -459,8 +542,8 @@ class GameView(ui.RootElement):
                                                  border_colour = drawing.constants.colours.white)
         self.interact_box.Disable()
 
-        #for i in xrange(1):
-        #    self.enemies.append( actors.Enemy( self.map, Point(10+i*2,10) ) )
+        for pos in self.enemy_positions:
+            self.enemies.append( actors.Enemy( self.map, pos ) )
 
     def StartMusic(self):
         pass

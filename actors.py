@@ -42,6 +42,7 @@ class Actor(object):
         self.pos = None
         self.last_damage = 0
         self.health = self.initial_health
+        self.interacting = None
         self.SetPos(pos)
         self.set_angle(3*math.pi/2)
 
@@ -273,6 +274,7 @@ class ConeLight(object):
         self.angle_width = width
         self.on = True
         pos = pos*globals.tile_dimensions
+        self.world_pos = pos
         self.pos = (pos.x,pos.y,self.z)
         box = (globals.tile_scale*Point(self.width,self.height))
         bl = Point(*self.pos[:2]) - box*0.5
