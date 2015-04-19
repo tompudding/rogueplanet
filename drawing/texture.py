@@ -116,8 +116,13 @@ class SubImage(object):
 
 
 class TextureAtlas(object):
-    def __init__(self,image_filename,data_filename):
-        extra_names = [image_filename[:-4] + extra + image_filename[-4:] for extra in '_normal','_occlude','_displace']
+    def __init__(self,image_filename,data_filename,extra_names = True):
+        if extra_names:
+            extra_names = ('_normal','_occlude','_displace')
+            extra_names = [image_filename[:-4] + extra + image_filename[-4:] for extra in extra_names]
+        else:
+            extra_names = []
+
 
         self.texture = Texture(image_filename,*extra_names)
         self.subimages = {}
@@ -168,6 +173,9 @@ class TextureAtlas(object):
 
     def TextureSpriteCoords(self,subimage):
         return self.TextureCoords(os.path.join(globals.dirs.sprites,subimage))
+
+    def TextureUiCoords(self,subimage):
+        return self.TextureCoords(os.path.join(globals.dirs.ui,subimage))
 
 class PetsciiAtlas(TextureAtlas):
     """

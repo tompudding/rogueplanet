@@ -22,6 +22,7 @@ class Actor(object):
     width   = None
     height  = None
     threshold = 0.01
+    initial_health = 100
     def __init__(self,map,pos):
         self.map            = map
         self.tc             = globals.atlas.TextureSpriteCoords('%s.png' % self.texture)
@@ -39,6 +40,8 @@ class Actor(object):
         self.move_speed     = Point(0,0)
         self.move_direction = Point(0,0)
         self.pos = None
+        self.last_damage = 0
+        self.health = self.initial_health
         self.SetPos(pos)
         self.set_angle(3*math.pi/2)
 
@@ -49,6 +52,22 @@ class Actor(object):
             for x in xrange(bl.x,tr.x+1):
                 for y in xrange(bl.y,tr.y+1):
                     self.map.RemoveActor(Point(x,y),self)
+
+    def AdjustHealth(self,amount):
+        self.health += amount
+        if self.health > self.initial_health:
+            self.health = self.initial_health
+        if self.health < 0:
+            #if self.dead_sound:
+            #    self.dead_sound.play()
+            self.health = 0
+
+    def damage(self, amount):
+        if globals.time < self.last_damage + self.immune_duration:
+            #woop we get to skip
+            return
+        self.last_damage = globals.time
+        self.AdjustHealth(-amount)
 
     def SetPos(self,pos):
         self.RemoveFromMap()
@@ -284,6 +303,7 @@ class Enemy(Actor):
     seek_distance = 16
     brightness_threshold = 0.1
     flee_threshold = 0.03
+    base_attack_damage = 5
 
     def __init__(self,map,pos):
         self.last_random = 0
@@ -300,8 +320,13 @@ class Enemy(Actor):
         if isinstance(other,Player):
             self.attack(other)
 
+    def attack_damage(self):
+        return self.base_attack_damage + random.randint(0,6)-3
+
     def attack(self, player):
-        print self,'attacking!',player
+        #print self,'attacking!',player
+        player.damage(self.attack_damage())
+        globals.current_view.viewpos.ScreenShake(500)
 
     def Update(self,t):
         brightness = self.get_brightness()
@@ -375,12 +400,37 @@ class Player(Actor):
     texture = 'player'
     width = 16
     height = 16
-
+    initial_health = 100
+    immune_duration = 200
     def __init__(self,map,pos):
         self.mouse_pos = Point(0,0)
         super(Player,self).__init__(map,pos)
         self.light = ActorLight(self)
         self.torch = Torch(self,Point(-(self.width/globals.tile_dimensions.x)*0.6,0))
+        self.info_box = ui.Box(parent = globals.screen_root,
+                               pos = Point(0,0),
+                               tr = Point(1,0.08),
+                               colour = (0,0,0,0.7))
+        self.info_box.health_text = ui.TextBox(self.info_box,
+                                               bl = Point(0.8,0),
+                                               tr = Point(1,0.7),
+                                               text = '\x81:%d' % self.initial_health,
+                                               textType = drawing.texture.TextTypes.SCREEN_RELATIVE,
+                                               colour = (1,0,0,1),
+                                               scale = 10,
+                                               alignment = drawing.texture.TextAlignments.CENTRE)
+        self.inv_quads = [drawing.Quad(globals.screen_texture_buffer,tc = globals.ui_atlas.TextureUiCoords('empty.png')) for i in xrange(3)]
+        self.sel_quads = [drawing.Quad(globals.screen_texture_buffer,tc = globals.ui_atlas.TextureUiCoords('selected.png')) for i in xrange(3)]
+        box_size = 48
+        sep_x = int((self.info_box.absolute.size.x*0.2 - box_size*3)/4)
+        sep_y = int((self.info_box.absolute.size.y - box_size)/2)
+        for i in xrange(3):
+            bl = self.info_box.absolute.bottom_left + Point(self.info_box.absolute.size.x*0.03,0) + Point(((i+1)*sep_x)+(i*box_size),sep_y)
+            tr = bl + Point(box_size,box_size)
+            self.inv_quads[i].SetVertices(bl,tr,9000)
+            #self.sel_quads[i].SetVertices(bl,tr,9001)
+            self.inv_quads[i].Enable()
+            #self.sel_quads[i].Disable()
 
     def Update(self,t):
         if self.dead:
@@ -409,3 +459,15 @@ class Player(Actor):
     def unclick(self, pos, button):
         print 'unclick',pos,button
         self.torch.on = False
+
+    def AdjustHealth(self,amount):
+        super(Player,self).AdjustHealth(amount)
+        self.info_box.health_text.SetText('\x81:%d' % self.health,colour = (1,1,0,1))
+
+    def damage(self, amount):
+        if globals.time < self.last_damage + self.immune_duration:
+            #woop we get to skip
+            return
+        self.last_damage = globals.time
+        self.AdjustHealth(-amount)
+

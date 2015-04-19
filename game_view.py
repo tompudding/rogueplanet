@@ -10,7 +10,7 @@ import actors
 class Viewpos(object):
     follow_threshold = 0
     max_away = Point(100,20)
-    shake_radius = 4
+    shake_radius = 10
     def __init__(self,point):
         self._pos = point
         self.NoTarget()
@@ -306,6 +306,7 @@ class TimeOfDay(object):
 class GameView(ui.RootElement):
     def __init__(self):
         self.atlas = globals.atlas = drawing.texture.TextureAtlas('tiles_atlas_0.png','tiles_atlas.txt')
+        globals.ui_atlas = drawing.texture.TextureAtlas('ui_atlas_0.png','ui_atlas.txt',extra_names=False)
         self.map = GameMap('level1.txt',self)
         self.map.world_size = self.map.size * globals.tile_dimensions
         self.viewpos = Viewpos(Point(100,400))

@@ -192,6 +192,7 @@ class UIBuffers(object):
         for args,local_state,func in self.buffers:
             if local_state:
                 state.Update(*local_state)
+
             func(*args)
             if local_state:
                 state.Update()
