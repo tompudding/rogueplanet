@@ -216,8 +216,8 @@ class SentryLightTile(TileData):
         SentryLightTile.count += 1
 
 class Door(TileData):
+    locked = False
     def __init__(self, type, pos, last_type, parent):
-        self.locked = False
         super(Door, self).__init__(type, pos, last_type, parent)
     def Toggle(self):
         if self.type == TileTypes.DOOR_CLOSED:
@@ -231,7 +231,18 @@ class Door(TileData):
     def Interact(self,player):
         if not self.locked:
             self.Toggle()
+        else:
+            print 'it\'s locked',player.has_key
+            if player.has_key:
+                #play an unlocking sound
+                self.Toggle()
+            else:
+                #play a locked sound
+                pass
         return True
+
+class LockedDoor(Door):
+    locked = True
 
 class HealthStation(TileData):
     def Interact(self,player):
@@ -331,6 +342,8 @@ class CommsCrate(Crate):
         print 'jim',self.interact_count,self.player
         if self.interact_count == 1 and self.player:
             self.player.AddItem(actors.CommsItem(self.player))
+            #play has key sound
+            self.player.has_key = True
 
 class BatteriesCrate(Crate):
     duration = 2000
@@ -345,19 +358,21 @@ class BatteriesCrate(Crate):
 class TiliumCrate(Crate):
     duration = 10000
     def Interacted(self):
-        super(TorchCrate, self).Interacted()
+        super(TiliumCrate, self).Interacted()
         print 'jim',self.interact_count,self.player
         if self.interact_count == 1 and self.player:
             self.player.tilium = True
 
 
 crate_types = [BatteriesCrate, TorchCrate, CommsCrate, FlareCrate, TiliumCrate]
+door_types = [Door,Door,LockedDoor]
 
 def TileDataFactory(map,type,pos,last_type,parent):
     #Why don't I just use a dictionary for this?
 
     if type in TileTypes.Doors:
-        return Door(type, pos, last_type,parent)
+        door_type = door_types.pop(0)
+        return door_type(type, pos, last_type,parent)
     elif type == TileTypes.LIGHT:
         return LightTile(type,pos,last_type,parent)
     elif type == TileTypes.SENTRY_LIGHT:

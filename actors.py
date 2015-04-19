@@ -175,7 +175,6 @@ class Actor(object):
         if self.interacting:
             diff = self.interacting.pos + (self.interacting.size*0.5) - self.pos
             distance = diff.length()
-            print 'turnip',distance
             if distance > 2.5:
                 self.deactivate()
 
@@ -491,6 +490,7 @@ class Player(Actor):
     immune_duration = 200
     def __init__(self,map,pos):
         self.mouse_pos = Point(0,0)
+        self.has_key = False
         super(Player,self).__init__(map,pos)
         self.light = ActorLight(self)
         self.tilium = False
@@ -595,7 +595,6 @@ class Player(Actor):
         if self.interacting:
             self.interacting.deactivate()
             self.interacting = None
-        print 'done'
 
     def UpdateMouse(self,pos,rel):
         diff = pos - (self.pos*globals.tile_dimensions)
@@ -616,11 +615,9 @@ class Player(Actor):
             self.SelectNext()
         elif button == 5:
             self.SelectPrev()
-        print 'click',pos,button
         #self.torch.on = True
 
     def unclick(self, pos, button):
-        print 'unclick',pos,button
         self.weapon.deactivate()
         #self.torch.on = False
 
@@ -682,7 +679,7 @@ class TorchItem(Item):
 
 class FlareItem(Item):
     icon = 'flare.png'
-    speed = 0.05
+    speed = 0.03
     def __init__(self,player):
         super(FlareItem,self).__init__(player)
         self.end = None
@@ -711,7 +708,6 @@ class FlareItem(Item):
         progress = float(globals.time - self.start)/self.duration
         partial = self.start_pos + (self.diff*progress)
         self.light.set_pos( partial )
-        print 'x',progress,partial
 
 
 class CommsItem(Item):
