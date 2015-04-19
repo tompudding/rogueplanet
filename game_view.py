@@ -136,14 +136,24 @@ class TileTypes:
     TILE                = 3
     PLAYER              = 4
     LIGHT               = 5
-    Impassable = set([WALL])
+    PANELS              = 6,
+    CHAIR               = 7,
+    DOOR_CLOSED         = 8,
+    DOOR_OPEN           = 9,
+    SENTRY_LIGHT        = 10,
+
+    Impassable = set([WALL, PANELS, CHAIR, DOOR_CLOSED])
+    Doors = set([DOOR_CLOSED, DOOR_OPEN])
 
 class TileData(object):
     texture_names = {TileTypes.GRASS         : 'grass.png',
                      TileTypes.WALL          : 'wall.png',
-                     TileTypes.TILE          : 'tile.png',}
+                     TileTypes.TILE          : 'tile.png',
+                     TileTypes.PANELS        : 'tile.png',
+                     TileTypes.CHAIR         : 'tile.png',
+                     TileTypes.PLAYER        : 'tile.png'}
 
-    def __init__(self, type, pos, last_type):
+    def __init__(self, type, pos, last_type, parent):
         self.pos  = pos
         self.type = type
         self.actors = {}
@@ -172,16 +182,45 @@ class TileData(object):
 
 
 class LightTile(TileData):
-    def __init__(self, type, pos, last_type):
+    def __init__(self, type, pos, last_type, parent):
         #Firstly decide what kind of tile we want
-        super(LightTile,self).__init__(last_type,pos,last_type)
+        super(LightTile,self).__init__(last_type,pos,last_type,parent)
         self.light = actors.Light(pos)
 
+class SentryLightTile(TileData):
+    count = 0
+    angles = [math.pi/2,math.pi/2,0,math.pi,3*math.pi/2,3*math.pi/2]
+    def __init__(self, type, pos, last_type, parent):
+        #Firstly decide what kind of tile we want
+        super(SentryLightTile,self).__init__(TileTypes.GRASS,pos,last_type,parent)
+        #which direction are we pointing? It goes up, up, left, right, down, down
+        self.light = actors.SentryLight(pos,self.angles[SentryLightTile.count],0.9,parent)
+        print SentryLightTile.count
+        SentryLightTile.count += 1
 
-def TileDataFactory(map,type,pos,last_type):
-    if type == TileTypes.LIGHT:
-        return LightTile(type,pos,last_type)
-    return TileData(type,pos,last_type)
+class Door(TileData):
+    def Toggle(self):
+        if self.type == TileTypes.DOOR_CLOSED:
+            self.type = TileTypes.DOOR_OPEN
+            #globals.sounds.dooropen.play()
+        else:
+            self.type = TileTypes.DOOR_CLOSED
+            #globals.sounds.doorclosed.play()
+        self.quad.SetTextureCoordinates(globals.atlas.TextureSpriteCoords(self.texture_names[self.type]))
+
+    def Interact(self,player):
+        if not self.locked:
+            self.Toggle()
+
+
+def TileDataFactory(map,type,pos,last_type,parent):
+    if type in TileTypes.Doors:
+        return Door(type, pos, last_type,parent)
+    elif type == TileTypes.LIGHT:
+        return LightTile(type,pos,last_type,parent)
+    elif type == TileTypes.SENTRY_LIGHT:
+        return SentryLightTile(type,pos,last_type,parent)
+    return TileData(type,pos,last_type,parent)
 
 class GameMap(object):
     input_mapping = {' ' : TileTypes.GRASS,
@@ -189,7 +228,11 @@ class GameMap(object):
                      '|' : TileTypes.WALL,
                      '-' : TileTypes.WALL,
                      '+' : TileTypes.WALL,
-                     'p' : TileTypes.PLAYER,
+                     'X' : TileTypes.PLAYER,
+                     'p' : TileTypes.PANELS,
+                     'c' : TileTypes.CHAIR,
+                     's' : TileTypes.SENTRY_LIGHT,
+                     'd' : TileTypes.DOOR_CLOSED,
                      'l' : TileTypes.LIGHT}
 
     def __init__(self,name,parent):
@@ -217,7 +260,7 @@ class GameMap(object):
                     #try:
                     if 1:
                         #hack, also give the adjacent tile so we know what kind of background to put it on...
-                        td = TileDataFactory(self,self.input_mapping[tile],Point(x,y),last)
+                        td = TileDataFactory(self,self.input_mapping[tile],Point(x,y),last,parent)
                         last = self.input_mapping[tile]
                         for tile_x in xrange(td.size.x):
                             for tile_y in xrange(td.size.y):
@@ -306,6 +349,7 @@ class TimeOfDay(object):
 class GameView(ui.RootElement):
     def __init__(self):
         self.atlas = globals.atlas = drawing.texture.TextureAtlas('tiles_atlas_0.png','tiles_atlas.txt')
+        self.sentry_lights = []
         globals.ui_atlas = drawing.texture.TextureAtlas('ui_atlas_0.png','ui_atlas.txt',extra_names=False)
         self.map = GameMap('level1.txt',self)
         self.map.world_size = self.map.size * globals.tile_dimensions
@@ -331,8 +375,8 @@ class GameView(ui.RootElement):
         #self.mode = modes.LevelOne(self)
         self.StartMusic()
         self.enemies = []
-        for i in xrange(1):
-            self.enemies.append( actors.Enemy( self.map, Point(10+i*2,10) ) )
+        #for i in xrange(1):
+        #    self.enemies.append( actors.Enemy( self.map, Point(10+i*2,10) ) )
 
     def StartMusic(self):
         pass
@@ -373,6 +417,8 @@ class GameView(ui.RootElement):
 
         for enemy in self.enemies:
             enemy.Update(t)
+        for light in self.sentry_lights:
+            light.Update(t)
         self.map.player.Update(t)
 
     def GameOver(self):

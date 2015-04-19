@@ -247,17 +247,38 @@ class ConeLight(object):
         self.shadow_quad = globals.shadow_quadbuffer.NewLight()
         self.shadow_index = self.shadow_quad.shadow_index
         self.colour = (1,1,1)
+        self.initial_angle = angle
         self.angle = angle
         self.angle_width = width
         self.on = True
         pos = pos*globals.tile_dimensions
         self.pos = (pos.x,pos.y,self.z)
+        box = (globals.tile_scale*Point(self.width,self.height))
+        bl = Point(*self.pos[:2]) - box*0.5
+        tr = bl + box
+        bl = bl.to_int()
+        tr = tr.to_int()
+        self.quad.SetVertices(bl,tr,4)
         globals.cone_lights.append(self)
 
     @property
     def screen_pos(self):
         p = self.pos
-        return ((p[0] - globals.game_view.viewpos._pos.x)*globals.scale.x,(p[1]-globals.game_view.viewpos._pos.y)*globals.scale.y,self.z)
+        out =  ((p[0] - globals.game_view.viewpos._pos.x)*globals.scale.x,(p[1]-globals.game_view.viewpos._pos.y)*globals.scale.y,self.z)
+        return out
+
+
+class SentryLight(ConeLight):
+    max_disturb = 0.4
+    duration = 600
+    def __init__(self,pos,angle,width,parent):
+        self.duration = SentryLight.duration + (random.random()*100-50)
+        self.offset = random.random()*self.duration
+        super(SentryLight,self).__init__(pos,angle,width)
+        parent.sentry_lights.append(self)
+
+    def Update(self,t):
+        self.angle = self.initial_angle + math.sin(float(t+self.offset)/self.duration)*self.max_disturb
 
 class Torch(ConeLight):
     def __init__(self,parent,offset):
