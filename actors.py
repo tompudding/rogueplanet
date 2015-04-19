@@ -533,7 +533,7 @@ class Player(Actor):
             self.inv_quads[i].Enable()
             self.sel_quads[i].Disable()
 
-        self.inventory = [None,None,None]
+        self.inventory = [None,None,None,None]
         self.num_items = 0
         self.current_item = 0
         self.attacking = False
@@ -609,7 +609,7 @@ class Player(Actor):
 
     def unclick(self, pos, button):
         print 'unclick',pos,button
-        self.weapon.deactivate(pos)
+        self.weapon.deactivate()
         #self.torch.on = False
 
     def AdjustHealth(self,amount):
@@ -656,7 +656,7 @@ class Hand(Item):
             if not done:
                 self.player.interacting = td
 
-    def deactivate(self,pos):
+    def deactivate(self):
         self.player.deactivate()
 
 class TorchItem(Item):
@@ -668,7 +668,7 @@ class TorchItem(Item):
     def Activate(self,pos):
         self.player.torch.turn_on()
 
-    def deactivate(self,pos):
+    def deactivate(self):
         self.player.torch.turn_off()
 
 class FlareItem(Item):
