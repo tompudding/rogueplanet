@@ -484,6 +484,7 @@ class Player(Actor):
         self.mouse_pos = Point(0,0)
         super(Player,self).__init__(map,pos)
         self.light = ActorLight(self)
+        self.tilium = False
         self.torch = Torch(self,Point(-(self.width/globals.tile_dimensions.x)*0.6,0))
         self.info_box = ui.Box(parent = globals.screen_root,
                                pos = Point(0,0),
@@ -517,12 +518,12 @@ class Player(Actor):
                                                                     drawing.constants.colours.red),
                                                      border_colour = drawing.constants.colours.white)
         self.info_box.torch_data.Disable()
-        self.inv_quads = [drawing.Quad(globals.screen_texture_buffer,tc = globals.ui_atlas.TextureUiCoords('empty.png')) for i in xrange(3)]
-        self.sel_quads = [drawing.Quad(globals.screen_texture_buffer,tc = globals.ui_atlas.TextureUiCoords('selected.png')) for i in xrange(3)]
+        self.inv_quads = [drawing.Quad(globals.screen_texture_buffer,tc = globals.ui_atlas.TextureUiCoords('empty.png')) for i in xrange(4)]
+        self.sel_quads = [drawing.Quad(globals.screen_texture_buffer,tc = globals.ui_atlas.TextureUiCoords('selected.png')) for i in xrange(4)]
         box_size = 48
         sep_x = int((self.info_box.absolute.size.x*0.2 - box_size*3)/4)
         sep_y = int((self.info_box.absolute.size.y - box_size)/2)
-        for i in xrange(3):
+        for i in xrange(4):
             bl = self.info_box.absolute.bottom_left + Point(self.info_box.absolute.size.x*0.03,0) + Point(((i+1)*sep_x)+(i*box_size),sep_y)
             tr = bl + Point(box_size,box_size)
             self.inv_quads[i].SetVertices(bl,tr,9000)
@@ -667,3 +668,9 @@ class TorchItem(Item):
 
     def deactivate(self,pos):
         self.player.torch.turn_off()
+
+class FlareItem(Item):
+    icon = 'flare.png'
+
+class CommsItem(Item):
+    icon = 'comms.png'

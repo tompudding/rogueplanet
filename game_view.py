@@ -318,15 +318,38 @@ class TorchCrate(Crate):
 
 class FlareCrate(Crate):
     duration = 1000
+    def Interacted(self):
+        super(FlareCrate, self).Interacted()
+        print 'jim',self.interact_count,self.player
+        if self.interact_count == 1 and self.player:
+            self.player.AddItem(actors.FlareItem(self.player))
 
 class CommsCrate(Crate):
     duration = 10000
+    def Interacted(self):
+        super(CommsCrate, self).Interacted()
+        print 'jim',self.interact_count,self.player
+        if self.interact_count == 1 and self.player:
+            self.player.AddItem(actors.CommsItem(self.player))
 
 class BatteriesCrate(Crate):
     duration = 2000
+    def Interacted(self):
+        super(BatteriesCrate, self).Interacted()
+        print 'jim',self.interact_count,self.player
+        if self.interact_count == 1 and self.player:
+            self.player.torch.burn_rate = 0
+            self.player.torch.on_penalty = 0
+
 
 class TiliumCrate(Crate):
     duration = 10000
+    def Interacted(self):
+        super(TorchCrate, self).Interacted()
+        print 'jim',self.interact_count,self.player
+        if self.interact_count == 1 and self.player:
+            self.player.tilium = True
+
 
 crate_types = [BatteriesCrate, TorchCrate, CommsCrate, FlareCrate, TiliumCrate]
 
