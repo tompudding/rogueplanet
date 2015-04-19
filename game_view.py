@@ -231,25 +231,37 @@ class Crate(TileData):
     def __init__(self, type, pos, last_type, parent):
         super(Crate, self).__init__(type, pos, last_type, parent)
         self.light = actors.FixedLight( self.pos, self.size )
+        self.player = None
+        self.interact_count = 0
 
     def Interact(self,player):
         self.start = globals.time
+        self.player = player
         self.end = self.start + self.duration
         globals.game_view.interact_box.Enable()
         return False
 
     def Update(self,t):
         if globals.time > self.end:
-            self.deactivate()
             self.Interacted()
+            self.deactivate()
+            return True
         progress = float(globals.time - self.start)/self.duration
         globals.game_view.interact_box.progress.SetBarLevel(progress)
 
     def deactivate(self):
         globals.game_view.interact_box.Disable()
+        self.player = None
 
+    def Interacted(self):
+        self.interact_count += 1
 
-
+class TorchCrate(Crate):
+    def Interacted(self):
+        super(TorchCrate, self).Interacted()
+        print 'jim',self.interact_count,self.player
+        if self.interact_count == 1 and self.player:
+            self.player.AddItem(actors.TorchItem(self.player))
 
 def TileDataFactory(map,type,pos,last_type,parent):
     if type in TileTypes.Doors:
@@ -259,7 +271,7 @@ def TileDataFactory(map,type,pos,last_type,parent):
     elif type == TileTypes.SENTRY_LIGHT:
         return SentryLightTile(type,pos,last_type,parent)
     elif type == TileTypes.CRATE:
-        return Crate(type, pos, last_type, parent)
+        return TorchCrate(type, pos, last_type, parent)
     return TileData(type,pos,last_type,parent)
 
 class GameMap(object):

@@ -595,3 +595,11 @@ class Hand(Item):
 
     def deactivate(self,pos):
         self.player.deactivate()
+
+class TorchItem(Item):
+    icon = 'torch.png'
+    def Activate(self,pos):
+        self.player.torch.on = True
+
+    def deactivate(self,pos):
+        self.player.torch.on = False
