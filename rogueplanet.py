@@ -17,6 +17,7 @@ def Init():
     globals.mouse_screen          = Point(0,0)
     globals.lights                = []
     globals.cone_lights           = []
+    globals.non_shadow_lights     = []
 
     globals.quad_buffer           = drawing.QuadBuffer(131072)
     globals.screen_texture_buffer = drawing.QuadBuffer(131072, ui=True)

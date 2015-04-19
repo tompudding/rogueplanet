@@ -403,7 +403,6 @@ def EndFrameGameMode():
         glVertexAttribPointer( light_shader.locations.vertex_data, 3, GL_FLOAT, GL_FALSE, 0, light.quad_buffer.vertex_data )
         glDrawElements(GL_QUADS,light.quad_buffer.current_size,GL_UNSIGNED_INT,light.quad_buffer.indices)
 
-    glUniform1i(light_shader.locations.light_type, 2)
     for light in globals.cone_lights:
         glUniform1i(light_shader.locations.shadow_index, light.shadow_index)
         glUniform3f(light_shader.locations.light_pos, *light.screen_pos)
@@ -413,6 +412,14 @@ def EndFrameGameMode():
 
         glVertexAttribPointer( light_shader.locations.vertex_data, 3, GL_FLOAT, GL_FALSE, 0, light.quad_buffer.vertex_data )
         glDrawElements(GL_QUADS,light.quad_buffer.current_size,GL_UNSIGNED_INT,light.quad_buffer.indices)
+
+    glUniform1i(light_shader.locations.light_type, 3)
+    for light in globals.non_shadow_lights:
+        glUniform3f(light_shader.locations.light_pos, *light.pos)
+        glUniform3f(light_shader.locations.light_colour, *light.colour)
+        glVertexAttribPointer( light_shader.locations.vertex_data, 3, GL_FLOAT, GL_FALSE, 0, light.quad_buffer.vertex_data )
+        glDrawElements(GL_QUADS,light.quad_buffer.current_size,GL_UNSIGNED_INT,light.quad_buffer.indices)
+
 
     glDisableVertexAttribArray( light_shader.locations.vertex_data );
     ResetState()

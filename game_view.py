@@ -363,6 +363,12 @@ class GameView(ui.RootElement):
         self.mode.KeyUp(key)
 
     def MouseMotion(self,pos,rel,handled):
+        #temp hack trying to read the brightness at the coord
+
+        p = pos*globals.scale
+        print p
+        x = glReadPixels(p.x,p.y,1,1,GL_RGBA,GL_FLOAT)
+        print x
         #print 'mouse',pos
         #if self.selected_player != None:
         #    self.selected_player.MouseMotion()
