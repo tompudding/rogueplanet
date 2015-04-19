@@ -461,6 +461,26 @@ class Player(Actor):
                                                colour = (1,0,0,1),
                                                scale = 10,
                                                alignment = drawing.texture.TextAlignments.CENTRE)
+        self.info_box.torch_data = ui.UIElement(self.info_box,
+                                                pos = Point(0.5,0),
+                                                tr = Point(0.85,1))
+        self.info_box.torch_data.text = ui.TextBox(self.info_box.torch_data,
+                                                    bl = Point(0,0),
+                                                    tr = Point(0.57,0.7),
+                                                    text = 'Torch power:',
+                                                    textType = drawing.texture.TextTypes.SCREEN_RELATIVE,
+                                                    colour = (1,0,0,1),
+                                                    scale = 8,
+                                                    alignment = drawing.texture.TextAlignments.CENTRE)
+        self.info_box.torch_data.power = ui.PowerBar(self.info_box.torch_data,
+                                                     pos = Point(0.5,0.36),
+                                                     tr = Point(1,0.66),
+                                                     level = 0.6,
+                                                     bar_colours = (drawing.constants.colours.green,
+                                                                    drawing.constants.colours.yellow,
+                                                                    drawing.constants.colours.red),
+                                                     border_colour = drawing.constants.colours.white)
+        self.info_box.torch_data.Disable()
         self.inv_quads = [drawing.Quad(globals.screen_texture_buffer,tc = globals.ui_atlas.TextureUiCoords('empty.png')) for i in xrange(3)]
         self.sel_quads = [drawing.Quad(globals.screen_texture_buffer,tc = globals.ui_atlas.TextureUiCoords('selected.png')) for i in xrange(3)]
         box_size = 48
@@ -479,15 +499,19 @@ class Player(Actor):
         self.current_item = 0
         self.attacking = False
         self.AddItem(Hand(self))
+        self.Select(self.num_items-1)
         self.weapon = self.inventory[self.current_item]
         self.interacting = None
 
     def AddItem(self,item):
+        #haxor
+        if isinstance(item,TorchItem):
+            self.info_box.torch_data.Enable()
         self.inventory[self.num_items] = item
         item.SetIconQuad(self.inv_quads[self.num_items])
         self.num_items += 1
         #auto select the new item
-        self.Select(self.num_items-1)
+        #self.Select(self.num_items-1)
 
     def SelectNext(self):
         self.Select((self.current_item + 1)%self.num_items)
@@ -598,6 +622,10 @@ class Hand(Item):
 
 class TorchItem(Item):
     icon = 'torch.png'
+
+    def __init__(self,player):
+        super(TorchItem,self).__init__(player)
+
     def Activate(self,pos):
         self.player.torch.on = True
 
