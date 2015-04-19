@@ -143,7 +143,7 @@ class GameMode(Mode):
 
 
 class GameOver(Mode):
-    blurb = "GAME OVER"
+    blurb = "GAME OVER. You died alone on the rogue planet, and plummet through the universe forever :("
     def __init__(self,parent):
         self.parent          = parent
         self.blurb           = self.blurb
@@ -163,7 +163,7 @@ class GameOver(Mode):
                                      tr     = tr         ,
                                      text   = self.blurb ,
                                      textType = drawing.texture.TextTypes.SCREEN_RELATIVE,
-                                     scale  = 3)
+                                     scale  = 30)
 
         self.start = None
         self.blurb_text.EnableChars(0)
@@ -213,3 +213,6 @@ class GameOver(Mode):
     def MouseButtonDown(self,pos,button):
         self.KeyDown(0)
         return False,False
+
+class GameWin(GameOver):
+    blurb = "You pilot the shuttle back to the ship. Wooo good for you"

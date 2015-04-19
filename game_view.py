@@ -161,6 +161,7 @@ class TileData(object):
                      TileTypes.HEALTH_STATION : 'health_station.png',
                      TileTypes.RECHARGE_STATION : 'recharge_station.png',
                      TileTypes.REDALERT_STATION : 'redalert_station.png',
+                     TileTypes.PANELS        : 'panel.png',
                      TileTypes.DOOR_CLOSED   : 'door_closed.png',
                      TileTypes.DOOR_OPEN     : 'door_open.png'}
 
@@ -287,6 +288,16 @@ class RedAlertStation(TileData):
         self.Toggle()
         return True
 
+class NavigationPanel(TileData):
+    def Interact(self,player):
+        if player.tilium:
+            #play sound for victory
+            globals.current_view.mode = modes.GameWin(globals.current_view)
+            globals.current_view.game_over = True
+        else:
+            #play sound for nothing
+            pass
+        return True
 
 class Crate(TileData):
     duration = 2000
@@ -381,6 +392,8 @@ def TileDataFactory(map,type,pos,last_type,parent):
         return RedAlertStation(type, pos, last_type, parent)
     elif type == TileTypes.RECHARGE_STATION:
         return RechargeStation(type, pos, last_type, parent)
+    elif type == TileTypes.PANELS:
+        return NavigationPanel(type, pos, last_type, parent)
     return TileData(type,pos,last_type,parent)
 
 class GameMap(object):

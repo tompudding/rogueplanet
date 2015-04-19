@@ -10,6 +10,7 @@ import pygame
 import cmath
 import math
 import numpy
+import modes
 
 class Directions:
     UP    = 0
@@ -564,7 +565,6 @@ class Player(Actor):
         self.current_item = 0
         self.attacking = False
         self.AddItem(Hand(self))
-        self.AddItem(CommsItem(self))
         self.Select(self.num_items-1)
         self.weapon = self.inventory[self.current_item]
         self.interacting = None
@@ -647,6 +647,9 @@ class Player(Actor):
     def AdjustHealth(self,amount):
         super(Player,self).AdjustHealth(amount)
         self.info_box.health_text.SetText('\x81:%d' % self.health,colour = (1,1,0,1))
+
+    def Death(self):
+        globals.current_view.mode = modes.GameOver(globals.current_view)
 
     def damage(self, amount):
         if globals.time < self.last_damage + self.immune_duration:
