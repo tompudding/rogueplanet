@@ -330,7 +330,7 @@ class GameView(ui.RootElement):
         #self.mode = modes.LevelOne(self)
         self.StartMusic()
         self.enemies = []
-        for i in xrange(10):
+        for i in xrange(1):
             self.enemies.append( actors.Enemy( self.map, Point(10+i*2,10) ) )
 
     def StartMusic(self):

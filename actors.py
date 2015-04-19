@@ -95,16 +95,19 @@ class Actor(object):
         tr = (self.pos+self.size).to_int()
         for x in xrange(bl.x,tr.x+1):
             for y in xrange(bl.y,tr.y+1):
-                for actor in self.map.data[x][y].actors:
-                    if actor is self:
-                        continue
-                    distance = actor.pos - self.pos
-                    if distance.SquareLength() < self.radius_square + actor.radius_square:
-                        overlap = self.radius + actor.radius - distance.length()
-                        adjust = distance.unit_vector()*-overlap
-                        #print type(self),self.radius,actor.radius,distance.length(),overlap,adjust
-                        amount += adjust*0.1
-                        #We've hit, so move us away from it's centre by the overlap
+                try:
+                    for actor in self.map.data[x][y].actors:
+                        if actor is self:
+                            continue
+                        distance = actor.pos - self.pos
+                        if distance.SquareLength() < self.radius_square + actor.radius_square:
+                            overlap = self.radius + actor.radius - distance.length()
+                            adjust = distance.unit_vector()*-overlap
+                            #print type(self),self.radius,actor.radius,distance.length(),overlap,adjust
+                            amount += adjust*0.1
+                            #We've hit, so move us away from it's centre by the overlap
+                except IndexError:
+                    pass
 
         #check each of our four corners
         for corner in self.corners:
@@ -170,6 +173,7 @@ class Light(object):
         globals.lights.append(self)
 
     def set_pos(self,pos):
+        self.world_pos = pos
         pos = pos*globals.tile_dimensions
         self.pos = (pos.x,pos.y,self.z)
         box = (globals.tile_scale*Point(self.width,self.height))
@@ -240,6 +244,12 @@ class Torch(ConeLight):
         globals.cone_lights.append(self)
 
     @property
+    def world_pos(self):
+        offset = cmath.rect(self.offset[0],self.offset[1]+self.parent.angle)
+        pos = (self.parent.pos + Point(offset.real,offset.imag))
+        return (pos.x,pos.y,self.z)
+
+    @property
     def pos(self):
         offset = cmath.rect(self.offset[0],self.offset[1]+self.parent.angle)
         pos = (self.parent.pos + Point(offset.real,offset.imag))*globals.tile_dimensions
@@ -262,9 +272,11 @@ class Enemy(Actor):
     random_segments = 200
     seek_distance = 8
     brightness_threshold = 0.1
+    flee_threshold = 0.03
 
     def __init__(self,map,pos):
         self.last_random = 0
+        self.fleeing = False
         super(Enemy,self).__init__(map,pos)
 
     def get_brightness(self):
@@ -277,12 +289,18 @@ class Enemy(Actor):
         brightness = self.get_brightness()
         player_diff = globals.game_view.map.player.pos - self.pos
         player_distance = player_diff.length()
-        if brightness > self.brightness_threshold:
-            self.avoid_light(player_diff, player_distance)
-        elif player_distance < self.seek_distance:
-            self.seek_player(player_diff,player_distance)
+        if self.fleeing:
+            if brightness > self.flee_threshold:
+                self.avoid_light(player_diff, player_distance)
+            else:
+                self.fleeing = False
         else:
-            self.random_walk()
+            if brightness > self.brightness_threshold:
+                self.avoid_light(player_diff, player_distance)
+            elif player_distance < self.seek_distance:
+                self.seek_player(player_diff,player_distance)
+            else:
+                self.random_walk()
         d,angle = cmath.polar(self.move_direction.x + self.move_direction.y*1j)
         self.set_angle(angle + math.pi)
         super(Enemy,self).Update(t)
@@ -303,12 +321,22 @@ class Enemy(Actor):
         self.move_direction = Point(d.real,d.imag)
 
     def avoid_light(self, player_diff, player_distance):
+        lights = [(light,(self.pos-Point(*light.world_pos[:2]))) for light in globals.lights + globals.cone_lights]
+        lights.sort(lambda x,y : cmp(x[1].SquareLength(),y[1].SquareLength()))
+        diff = lights[0][1]
+        self.move_direction = diff.unit_vector()*self.speed
+        self.fleeing = True
+
+    def avoid_light_old(self, player_diff, player_distance):
         #Get the brightness at a few points and go in the direction that it's
         #Use green light for some reason
         elapsed = globals.time - self.last_random
         if elapsed < self.random_segments:
             return
         self.last_random = globals.time
+        self.fleeing = True
+        sp = self.screen_pos
+        self.pixel_data = glReadPixels(sp.x-self.width*2,sp.y-self.width*2,self.width*4,self.height*4,GL_RGB,GL_FLOAT)[:,:,1:3]
         max_index = numpy.argmax(self.pixel_data[:,:,1:2])
         min_index = numpy.argmin(self.pixel_data[:,:,1:2])
         indices = numpy.unravel_index((max_index,min_index),self.pixel_data.shape)
