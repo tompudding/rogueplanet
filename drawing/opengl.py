@@ -355,7 +355,7 @@ def EndFrameGameMode():
     #the lights list
     glUniform1i(light_shader.locations.light_type, 2)
     glUniform1i(light_shader.locations.shadow_index, 0)
-    glUniform3f(light_shader.locations.light_pos, globals.mouse_screen.x, globals.mouse_screen.y,200)
+    glUniform3f(light_shader.locations.light_pos, globals.mouse_screen.x, globals.mouse_screen.y,20)
     glUniform3f(light_shader.locations.light_colour, 1,1,1)
     glUniform1f(light_shader.locations.cone_dir, 0)
     glUniform1f(light_shader.locations.cone_width, 70)
@@ -403,7 +403,7 @@ def EndFrameGameMode():
     glUniform1i(light_shader.locations.light_type, 2)
     for light in globals.cone_lights:
         glUniform1i(light_shader.locations.shadow_index, light.shadow_index)
-        glUniform3f(light_shader.locations.light_pos, *(light.screen_pos + (10,)))
+        glUniform3f(light_shader.locations.light_pos, *(light.screen_pos + (60,)))
         glUniform3f(light_shader.locations.light_colour, *light.colour)
         glUniform1f(light_shader.locations.cone_dir, light.angle)
         glUniform1f(light_shader.locations.cone_width, light.angle_width)

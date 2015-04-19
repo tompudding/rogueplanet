@@ -169,8 +169,8 @@ class ConeLight(object):
 
 class Player(Actor):
     texture = 'player'
-    width = 24
-    height = 24
+    width = 16
+    height = 16
 
     def __init__(self,map,pos):
         self.mouse_pos = Point(0,0)
