@@ -388,6 +388,7 @@ class GameView(ui.RootElement):
         #self.mode = modes.LevelOne(self)
         self.StartMusic()
         self.enemies = []
+        self.fixed_light = actors.FixedLight( Point(11,37),Point(26,9) )
         #for i in xrange(1):
         #    self.enemies.append( actors.Enemy( self.map, Point(10+i*2,10) ) )
 

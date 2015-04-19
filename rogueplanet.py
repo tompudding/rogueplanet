@@ -19,6 +19,7 @@ def Init():
     globals.lights                = []
     globals.cone_lights           = []
     globals.non_shadow_lights     = []
+    globals.uniform_lights        = []
 
     globals.quad_buffer           = drawing.QuadBuffer(131072)
     globals.screen_texture_buffer = drawing.QuadBuffer(131072, ui=True)

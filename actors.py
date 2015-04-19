@@ -236,6 +236,25 @@ class ActorLight(object):
     def pos(self):
         return (self.parent.pos.x*globals.tile_dimensions.x,self.parent.pos.y*globals.tile_dimensions.y,self.z)
 
+class FixedLight(object):
+    z = 6
+    def __init__(self,pos,size):
+        #self.world_pos = pos
+        self.pos = pos*globals.tile_dimensions
+        self.size = size
+        self.quad_buffer = drawing.QuadBuffer(4)
+        self.quad = drawing.Quad(self.quad_buffer)
+        self.colour = (0.2,0.2,0.2)
+        self.on = True
+        globals.uniform_lights.append(self)
+        self.pos = (self.pos.x,self.pos.y,self.z)
+        box = (self.size*globals.tile_dimensions)
+        bl = Point(*self.pos[:2])
+        tr = bl + box
+        bl = bl.to_int()
+        tr = tr.to_int()
+        self.quad.SetVertices(bl,tr,4)
+
 
 class ConeLight(object):
     width = 400
