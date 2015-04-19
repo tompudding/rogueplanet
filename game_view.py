@@ -175,8 +175,14 @@ class TileData(object):
         self.quad.Delete()
     def Interact(self,player):
         pass
+    def deactivate(self):
+        pass
+    def Update(self,t):
+        pass
     def AddActor(self,actor):
         self.actors[actor] = True
+    def Interacted(self):
+        pass
 
     def RemoveActor(self,actor):
         try:
@@ -218,11 +224,32 @@ class Door(TileData):
     def Interact(self,player):
         if not self.locked:
             self.Toggle()
+        return True
 
 class Crate(TileData):
+    duration = 1000
     def __init__(self, type, pos, last_type, parent):
         super(Crate, self).__init__(type, pos, last_type, parent)
         self.light = actors.FixedLight( self.pos, self.size )
+
+    def Interact(self,player):
+        self.start = globals.time
+        self.end = self.start + self.duration
+        globals.game_view.interact_box.Enable()
+        return False
+
+    def Update(self,t):
+        if globals.time > self.end:
+            self.deactivate()
+            self.Interacted()
+        progress = float(globals.time - self.start)/self.duration
+        globals.game_view.interact_box.progress.SetBarLevel(progress)
+
+    def deactivate(self):
+        globals.game_view.interact_box.Disable()
+
+
+
 
 def TileDataFactory(map,type,pos,last_type,parent):
     if type in TileTypes.Doors:
@@ -398,6 +425,28 @@ class GameView(ui.RootElement):
         self.StartMusic()
         self.enemies = []
         self.fixed_light = actors.FixedLight( Point(11,37),Point(26,9) )
+        self.interact_box = ui.Box(parent = globals.screen_root,
+                                   pos = Point(0.3,0.4),
+                                   tr = Point(0.7,0.6),
+                                   colour = (0.5,0.5,0.5,0.7))
+        self.interact_box.title = ui.TextBox(self.interact_box,
+                                             bl = Point(0,0),
+                                             tr = Point(1,1),
+                                             text = 'Opening...',
+                                             textType = drawing.texture.TextTypes.SCREEN_RELATIVE,
+                                             colour = (0,0,0,1),
+                                             scale = 15,
+                                             alignment = drawing.texture.TextAlignments.CENTRE)
+        self.interact_box.progress = ui.PowerBar(self.interact_box,
+                                                 pos = Point(0.1,0.3),
+                                                 tr = Point(0.9,0.6),
+                                                 level = 0.6,
+                                                 bar_colours = (drawing.constants.colours.green,
+                                                                drawing.constants.colours.yellow,
+                                                                drawing.constants.colours.red),
+                                                 border_colour = drawing.constants.colours.white)
+        self.interact_box.Disable()
+
         #for i in xrange(1):
         #    self.enemies.append( actors.Enemy( self.map, Point(10+i*2,10) ) )
 

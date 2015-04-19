@@ -104,6 +104,8 @@ class Actor(object):
             return
         elapsed = globals.time - self.last_update
         self.last_update = globals.time
+        if self.interacting:
+            return
 
         self.move_speed += self.move_direction*elapsed*globals.time_step
         self.move_speed *= 0.7*(1-(elapsed/1000.0))
@@ -478,6 +480,7 @@ class Player(Actor):
         self.attacking = False
         self.AddItem(Hand(self))
         self.weapon = self.inventory[self.current_item]
+        self.interacting = None
 
     def AddItem(self,item):
         self.inventory[self.num_items] = item
@@ -504,10 +507,20 @@ class Player(Actor):
         if self.dead:
             globals.current_view.mode = modes.GameOver(globals.current_view)
             globals.current_view.game_over = True
+        if self.interacting:
+            done = self.interacting.Update(t)
+            if done:
+                self.deactivate()
         self.UpdateMouse(self.mouse_pos,None)
         super(Player,self).Update(t)
         self.light.Update(t)
         self.torch.Update(t)
+
+    def deactivate(self):
+        if self.interacting:
+            self.interacting.deactivate()
+            self.interacting = None
+        print 'done'
 
     def UpdateMouse(self,pos,rel):
         diff = pos - (self.pos*globals.tile_dimensions)
@@ -533,7 +546,7 @@ class Player(Actor):
 
     def unclick(self, pos, button):
         print 'unclick',pos,button
-        self.weapon.deactivate()
+        self.weapon.deactivate(pos)
         #self.torch.on = False
 
     def AdjustHealth(self,amount):
@@ -576,4 +589,9 @@ class Hand(Item):
         diff = td.pos + (td.size*0.5) - self.player.pos
         distance = diff.length()
         if 1.0 < distance < 2.5:
-            td.Interact(self.player)
+            done = td.Interact(self.player)
+            if not done:
+                self.player.interacting = td
+
+    def deactivate(self,pos):
+        self.player.deactivate()
