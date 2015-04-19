@@ -574,5 +574,6 @@ class Hand(Item):
         #print 'handing!',pos
         td = globals.game_view.map.get_tile_from_world(pos)
         diff = td.pos + (td.size*0.5) - self.player.pos
-        if diff.length() < 1.6:
+        distance = diff.length()
+        if 1.0 < distance < 2.5:
             td.Interact(self.player)
