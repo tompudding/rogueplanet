@@ -95,6 +95,8 @@ class GameMode(Mode):
                 pygame.K_RIGHT : KeyFlags.RIGHT,
                 pygame.K_UP    : KeyFlags.UP,
                 pygame.K_DOWN  : KeyFlags.DOWN}
+
+    inv_keys = [pygame.K_1,pygame.K_2,pygame.K_3]
     """This is a bit of a cheat class as I'm rushed. Just pass everything back"""
     def __init__(self,parent):
         self.parent            = parent
@@ -125,6 +127,10 @@ class GameMode(Mode):
             if key in self.direction_amounts and (self.keydownmap[self.keyflags[key]] == input_key):
                 del self.keydownmap[self.keyflags[key]]
                 self.parent.map.player.move_direction -= self.direction_amounts[key]
+
+        elif key in self.inv_keys:
+            inv = self.inv_keys.index(key)
+            self.parent.map.player.Select(inv)
 
     def MouseButtonDown(self,pos,button):
         self.parent.map.player.click(pos,button)
