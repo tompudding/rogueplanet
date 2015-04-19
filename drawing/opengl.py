@@ -382,14 +382,14 @@ def EndFrameGameMode():
     glDrawElements(GL_QUADS,quad_buffer.current_size,GL_UNSIGNED_INT,quad_buffer.indices)
 
     #Now get the nighttime illumination
-    nightlight_dir,nightlight_colour = timeofday.Nightlight()
-    quad_buffer = globals.nightlight_quads
-    glUniform1i(light_shader.locations.light_type, 1)
-    glUniform3f(light_shader.locations.directional_light_dir, *nightlight_dir)
-    glUniform3f(light_shader.locations.light_colour, *nightlight_colour)
-    glEnableVertexAttribArray( light_shader.locations.vertex_data );
-    glVertexAttribPointer( light_shader.locations.vertex_data, 3, GL_FLOAT, GL_FALSE, 0, quad_buffer.vertex_data )
-    glDrawElements(GL_QUADS,quad_buffer.current_size,GL_UNSIGNED_INT,quad_buffer.indices)
+    # nightlight_dir,nightlight_colour = timeofday.Nightlight()
+    # quad_buffer = globals.nightlight_quads
+    # glUniform1i(light_shader.locations.light_type, 1)
+    # glUniform3f(light_shader.locations.directional_light_dir, *nightlight_dir)
+    # glUniform3f(light_shader.locations.light_colour, *nightlight_colour)
+    # glEnableVertexAttribArray( light_shader.locations.vertex_data );
+    # glVertexAttribPointer( light_shader.locations.vertex_data, 3, GL_FLOAT, GL_FALSE, 0, quad_buffer.vertex_data )
+    # glDrawElements(GL_QUADS,quad_buffer.current_size,GL_UNSIGNED_INT,quad_buffer.indices)
 
     Scale(globals.scale.x,globals.scale.y,1)
     Translate(-globals.game_view.viewpos.pos.x,-globals.game_view.viewpos.pos.y,0)

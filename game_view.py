@@ -279,7 +279,7 @@ class TimeOfDay(object):
     def Nightlight(self):
         #Direction will be
 
-        return (1,3,-5),(0.25,0.25,0.4)
+        return (1,3,-5),(0.25*0.5,0.25*0.5,0.4*0.5)
 
 class GameView(ui.RootElement):
     def __init__(self):
@@ -290,6 +290,7 @@ class GameView(ui.RootElement):
         self.player_direction = Point(0,0)
         self.game_over = False
         self.mouse_world = Point(0,0)
+        self.mouse_pos = Point(0,0)
         #pygame.mixer.music.load('music.ogg')
         #self.music_playing = False
         super(GameView,self).__init__(Point(0,0),globals.screen)
@@ -306,6 +307,8 @@ class GameView(ui.RootElement):
         self.timeofday = TimeOfDay(0.1)
         #self.mode = modes.LevelOne(self)
         self.StartMusic()
+        self.enemies = []
+        self.enemies.append( actors.Enemy( self.map, Point(10,10) ) )
 
     def StartMusic(self):
         pass
@@ -340,7 +343,7 @@ class GameView(ui.RootElement):
         if self.viewpos._pos.y > (self.map.world_size.y - globals.screen.y):
             self.viewpos._pos.y = (self.map.world_size.y - globals.screen.y)
 
-        #globals.mouse_world = self.viewpos.pos + self.mouse_pos
+        self.mouse_world = self.viewpos.pos + self.mouse_pos
         self.map.player.mouse_pos = self.mouse_world
 
         self.map.player.Update(t)
@@ -365,15 +368,14 @@ class GameView(ui.RootElement):
     def MouseMotion(self,pos,rel,handled):
         #temp hack trying to read the brightness at the coord
 
-        p = pos*globals.scale
-        print p
-        x = glReadPixels(p.x,p.y,1,1,GL_RGBA,GL_FLOAT)
-        print x
+        #p = pos*globals.scale
+        #x = glReadPixels(p.x,p.y,1,1,GL_RGBA,GL_FLOAT)
+
         #print 'mouse',pos
         #if self.selected_player != None:
         #    self.selected_player.MouseMotion()
         world_pos = self.viewpos.pos + pos
-        self.mouse_world = world_pos
+        self.mouse_pos = pos
 
         self.mode.MouseMotion(world_pos,rel)
 

@@ -211,6 +211,11 @@ class Torch(ConeLight):
         self.quad.SetVertices(bl,tr,4)
         #self.quad.SetAllVertices(self.parent.vertices, 0)
 
+class Enemy(Actor):
+    texture = 'enemy'
+    width   = 16
+    height  = 16
+
 
 class Player(Actor):
     texture = 'player'
