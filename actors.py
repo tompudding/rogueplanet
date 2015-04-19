@@ -1,4 +1,5 @@
 from globals.types import Point
+from OpenGL.GL import *
 import globals
 import ui
 import drawing
@@ -8,6 +9,7 @@ import random
 import pygame
 import cmath
 import math
+import numpy
 
 class Directions:
     UP    = 0
@@ -113,6 +115,12 @@ class Actor(object):
     def GetPosCentre(self):
         return self.pos
 
+    @property
+    def screen_pos(self):
+        p = (self.pos*globals.tile_dimensions - globals.game_view.viewpos._pos)*globals.scale
+        return p
+
+
 class Light(object):
     z = 60
     width = 400
@@ -215,6 +223,23 @@ class Enemy(Actor):
     texture = 'enemy'
     width   = 16
     height  = 16
+    speed = 0.04
+
+    def get_brightness(self):
+        sp = self.screen_pos
+        x = glReadPixels(sp.x-self.width/2,sp.y-self.width/2,self.width,self.height,GL_RGB,GL_FLOAT)
+
+        return numpy.average(x[:,:,1:3])
+
+    def Update(self,t):
+        brightness = self.get_brightness()
+        player_diff = globals.game_view.map.player.pos - self.pos
+        player_distance = player_diff.length()
+        distance,angle = cmath.polar(player_diff.x + player_diff.y*1j)
+        self.set_angle(angle+math.pi)
+        print player_distance
+        self.move_direction = player_diff.unit_vector()*self.speed
+        super(Enemy,self).Update(t)
 
 
 class Player(Actor):

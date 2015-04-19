@@ -347,6 +347,8 @@ class GameView(ui.RootElement):
         self.map.player.mouse_pos = self.mouse_world
 
         self.map.player.Update(t)
+        for enemy in self.enemies:
+            enemy.Update(t)
 
     def GameOver(self):
         self.game_over = True

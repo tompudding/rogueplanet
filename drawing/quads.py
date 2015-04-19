@@ -84,15 +84,13 @@ class QuadBuffer(ShapeBuffer):
 class ShadowQuadBuffer(QuadBuffer):
     def NewLight(self):
         row = self.current_size / self.num_points
-        print 'a',self.current_size,row
         light = Quad(self)
         #Now set the vertices for the next line ...
         bl = Point(0,row)
-        tr = Point(drawing.opengl.ShadowMapBuffer.WIDTH,row+1)
+        tr = Point(drawing.opengl.ShadowMapBuffer.WIDTH,(row+1))
         #bl = Point(0,0)
         #tr = Point(drawing.opengl.ShadowMapBuffer.WIDTH,drawing.opengl.ShadowMapBuffer.HEIGHT)
         light.SetVertices(bl,tr,0)
-        print 'b',self.current_size
         light.shadow_index = row
         return light
 

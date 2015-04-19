@@ -63,7 +63,8 @@ void main()
         float theta_diff = theta - cone_dir;
         float r = length(adjust_xy)*0.95;
         float coord = (PI-theta) / (2.0*PI);
-        vec2 tc = vec2(coord,shadow_index*3.0/(256.0));
+        float jim = (shadow_index*3)/256.0;
+        vec2 tc = vec2(coord,jim);
         float centre = sample(tc,r);
         float blur = 0.003;//(1/256.)*smoothstep(0.,1.,r);
         float sum = centre * 0.16;

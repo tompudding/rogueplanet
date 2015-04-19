@@ -8,6 +8,7 @@ from globals.types import Point
 
 def Init():
     """Initialise everything. Run once on startup"""
+    #w,h = (1600,900)
     w,h = (1280,720)
     globals.tile_scale            = Point(1,1)
     globals.scale                 = Point(2,2)
