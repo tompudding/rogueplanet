@@ -449,9 +449,37 @@ class Player(Actor):
             bl = self.info_box.absolute.bottom_left + Point(self.info_box.absolute.size.x*0.03,0) + Point(((i+1)*sep_x)+(i*box_size),sep_y)
             tr = bl + Point(box_size,box_size)
             self.inv_quads[i].SetVertices(bl,tr,9000)
-            #self.sel_quads[i].SetVertices(bl,tr,9001)
+            self.sel_quads[i].SetVertices(bl,tr,9001)
             self.inv_quads[i].Enable()
-            #self.sel_quads[i].Disable()
+            self.sel_quads[i].Disable()
+
+        self.inventory = [None,None,None]
+        self.num_items = 0
+        self.current_item = 0
+        self.attacking = False
+        self.AddItem(Hand(self))
+        self.weapon = self.inventory[self.current_item]
+
+    def AddItem(self,item):
+        self.inventory[self.num_items] = item
+        item.SetIconQuad(self.inv_quads[self.num_items])
+        self.num_items += 1
+        #auto select the new item
+        self.Select(self.num_items-1)
+
+    def SelectNext(self):
+        self.Select((self.current_item + 1)%self.num_items)
+
+    def SelectPrev(self):
+        self.Select((self.current_item + self.num_items - 1 )%self.num_items)
+
+
+    def Select(self,index):
+        if not self.attacking and self.inventory[index]:
+            self.sel_quads[self.current_item].Disable()
+            self.weapon = self.inventory[index]
+            self.current_item = index
+            self.sel_quads[self.current_item].Enable()
 
     def Update(self,t):
         if self.dead:
@@ -474,12 +502,20 @@ class Player(Actor):
 
 
     def click(self, pos, button):
+        if button == 1:
+            self.weapon.Activate(pos)
+
+        elif button == 4:
+            self.SelectNext()
+        elif button == 5:
+            self.SelectPrev()
         print 'click',pos,button
-        self.torch.on = True
+        #self.torch.on = True
 
     def unclick(self, pos, button):
         print 'unclick',pos,button
-        self.torch.on = False
+        self.weapon.deactivate()
+        #self.torch.on = False
 
     def AdjustHealth(self,amount):
         super(Player,self).AdjustHealth(amount)
@@ -492,3 +528,32 @@ class Player(Actor):
         self.last_damage = globals.time
         self.AdjustHealth(-amount)
 
+class Item(object):
+    sounds = None
+    def __init__(self,player):
+        self.player = player
+        self.icon_tc = globals.ui_atlas.TextureUiCoords(self.icon)
+
+    def SetIconQuad(self,quad):
+        quad.SetTextureCoordinates(self.icon_tc)
+
+    def Disturbance(self):
+        return Point(0,0)
+
+    def Activate(self,pos):
+        pass
+
+    def deactivate(self):
+        pass
+
+    def Update(self,t):
+        return True if t > self.end else False
+
+class Hand(Item):
+    icon = 'hand.png'
+    def Activate(self,pos):
+        #print 'handing!',pos
+        td = globals.game_view.map.get_tile_from_world(pos)
+        diff = td.pos + (td.size*0.5) - self.player.pos
+        if diff.length() < 1.6:
+            td.Interact(self.player)

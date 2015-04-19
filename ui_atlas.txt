@@ -1,2 +1,3 @@
 resource/ui/empty.png:ui_atlas_0.png:0:976.0:48:48
-resource/ui/selected.png:ui_atlas_0.png:48:976.0:48:48
+resource/ui/hand.png:ui_atlas_0.png:48:976.0:48:48
+resource/ui/selected.png:ui_atlas_0.png:96:976.0:48:48

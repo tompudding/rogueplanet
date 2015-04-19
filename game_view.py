@@ -151,7 +151,9 @@ class TileData(object):
                      TileTypes.TILE          : 'tile.png',
                      TileTypes.PANELS        : 'tile.png',
                      TileTypes.CHAIR         : 'tile.png',
-                     TileTypes.PLAYER        : 'tile.png'}
+                     TileTypes.PLAYER        : 'tile.png',
+                     TileTypes.DOOR_CLOSED   : 'door_closed.png',
+                     TileTypes.DOOR_OPEN     : 'door_open.png'}
 
     def __init__(self, type, pos, last_type, parent):
         self.pos  = pos
@@ -199,6 +201,9 @@ class SentryLightTile(TileData):
         SentryLightTile.count += 1
 
 class Door(TileData):
+    def __init__(self, type, pos, last_type, parent):
+        self.locked = False
+        super(Door, self).__init__(type, pos, last_type, parent)
     def Toggle(self):
         if self.type == TileTypes.DOOR_CLOSED:
             self.type = TileTypes.DOOR_OPEN
@@ -298,6 +303,14 @@ class GameMap(object):
             self.data[pos.x][pos.y].RemoveActor(actor)
         except IndexError:
             pass
+
+    def get_tile_from_world(self,pos):
+        pos = (pos/globals.tile_dimensions).to_int()
+        print pos
+        try:
+            return self.data[pos.x][pos.y]
+        except IndexError:
+            return None
 
 class TimeOfDay(object):
     def __init__(self,t):
