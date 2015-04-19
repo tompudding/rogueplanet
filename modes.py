@@ -96,7 +96,7 @@ class GameMode(Mode):
                 pygame.K_UP    : KeyFlags.UP,
                 pygame.K_DOWN  : KeyFlags.DOWN}
 
-    inv_keys = [pygame.K_1,pygame.K_2,pygame.K_3,pygame.K_4]
+    inv_keys = [pygame.K_1, pygame.K_2, pygame.K_3, pygame.K_4]
     """This is a bit of a cheat class as I'm rushed. Just pass everything back"""
     def __init__(self,parent):
         self.parent            = parent

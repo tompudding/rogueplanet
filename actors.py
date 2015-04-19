@@ -110,8 +110,8 @@ class Actor(object):
         self.move_speed += self.move_direction*elapsed*globals.time_step
         self.move_speed *= 0.7*(1-(elapsed/1000.0))
 
-        #if self.interacting:
-        #    self.move_speed = Point(0,0)
+        if self.interacting:
+            self.move_speed = Point(0,0)
 
         amount = Point(self.move_speed.x*elapsed*globals.time_step,self.move_speed.y*elapsed*globals.time_step)
 
@@ -172,6 +172,13 @@ class Actor(object):
 
         self.SetPos(self.pos + amount)
 
+        if self.interacting:
+            diff = self.interacting.pos + (self.interacting.size*0.5) - self.pos
+            distance = diff.length()
+            print 'turnip',distance
+            if distance > 2.5:
+                self.deactivate()
+
     def GetPos(self):
         return self.pos
 
@@ -192,9 +199,9 @@ class Actor(object):
 
 class Light(object):
     z = 60
-    width = 400
-    height = 400
-    def __init__(self,pos):
+    def __init__(self,pos,radius = 400):
+        self.radius = radius
+        self.width = self.height = radius
         self.quad_buffer = drawing.QuadBuffer(4)
         self.quad = drawing.Quad(self.quad_buffer)
         self.shadow_quad = globals.shadow_quadbuffer.NewLight()
@@ -487,6 +494,7 @@ class Player(Actor):
         super(Player,self).__init__(map,pos)
         self.light = ActorLight(self)
         self.tilium = False
+        self.flare = None
         self.torch = Torch(self,Point(-(self.width/globals.tile_dimensions.x)*0.6,0))
         self.info_box = ui.Box(parent = globals.screen_root,
                                pos = Point(0,0),
@@ -546,6 +554,8 @@ class Player(Actor):
         #haxor
         if isinstance(item,TorchItem):
             self.info_box.torch_data.Enable()
+        elif isinstance(item,FlareItem):
+            self.flare = item
         self.inventory[self.num_items] = item
         item.SetIconQuad(self.inv_quads[self.num_items])
         self.num_items += 1
@@ -578,6 +588,8 @@ class Player(Actor):
         super(Player,self).Update(t)
         self.light.Update(t)
         self.torch.Update(t)
+        if self.flare:
+            self.flare.Update(t)
 
     def deactivate(self):
         if self.interacting:
@@ -662,9 +674,6 @@ class Hand(Item):
 class TorchItem(Item):
     icon = 'torch.png'
 
-    def __init__(self,player):
-        super(TorchItem,self).__init__(player)
-
     def Activate(self,pos):
         self.player.torch.turn_on()
 
@@ -673,6 +682,37 @@ class TorchItem(Item):
 
 class FlareItem(Item):
     icon = 'flare.png'
+    speed = 0.05
+    def __init__(self,player):
+        super(FlareItem,self).__init__(player)
+        self.end = None
+
+    def Activate(self,pos):
+        if self.end:
+            print 'flares exhausted'
+            return
+        self.start_pos = self.player.pos
+        self.end_pos = globals.game_view.mouse_world.to_float()/globals.tile_dimensions
+
+        self.diff = self.end_pos - self.start_pos
+        self.duration = self.diff.length()/self.speed
+        self.start = globals.time
+        self.end = globals.time + self.duration
+
+        self.light = Light(self.start_pos, radius=200)
+
+    def Update(self,t):
+        if not self.end:
+            return
+        if globals.time > self.end:
+            #hack so we don't get updated anymore
+            #self.player.flare = None
+            return
+        progress = float(globals.time - self.start)/self.duration
+        partial = self.start_pos + (self.diff*progress)
+        self.light.set_pos( partial )
+        print 'x',progress,partial
+
 
 class CommsItem(Item):
     icon = 'comms.png'

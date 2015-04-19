@@ -230,7 +230,8 @@ def Init(w,h):
                                   'cone_dir',
                                   'shadow_index',
                                   'cone_width',
-                                  'light_colour'),
+                                  'light_colour',
+                                  'light_radius'),
                       attributes = ('vertex_data',))
 
     geom_shader.Load('geometry',
@@ -349,6 +350,7 @@ def EndFrameGameMode():
     glClearColor(0.0, 0.0, 0.0, 1.0)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     light_shader.Use()
+    glUniform1f(light_shader.locations.light_radius, 400)
 
     quad_buffer = globals.temp_mouse_light
 
@@ -402,10 +404,13 @@ def EndFrameGameMode():
         glUniform1i(light_shader.locations.shadow_index, light.shadow_index)
         glUniform3f(light_shader.locations.light_pos, *light.screen_pos)
         glUniform3f(light_shader.locations.light_colour, *light.colour)
+        glUniform1f(light_shader.locations.light_radius, light.radius)
         glUniform1f(light_shader.locations.cone_dir, 0)
         glUniform1f(light_shader.locations.cone_width, 7)
         glVertexAttribPointer( light_shader.locations.vertex_data, 3, GL_FLOAT, GL_FALSE, 0, light.quad_buffer.vertex_data )
         glDrawElements(GL_QUADS,light.quad_buffer.current_size,GL_UNSIGNED_INT,light.quad_buffer.indices)
+
+    glUniform1f(light_shader.locations.light_radius, 400)
 
     for light in globals.cone_lights:
         if not light.on:
@@ -463,6 +468,7 @@ def InitDrawing():
     glUniform1i(light_shader.locations.normal_map  , gbuffer.TEXTURE_TYPE_NORMAL)
     glUniform1i(light_shader.locations.occlude_map  , gbuffer.TEXTURE_TYPE_OCCLUDE)
     glUniform1i(light_shader.locations.shadow_map  , gbuffer.TEXTURE_TYPE_SHADOW)
+    glUniform1f(light_shader.locations.light_radius, 400)
     glUniform3f(light_shader.locations.screen_dimensions, globals.screen_abs.x, globals.screen_abs.y, z_max)
     #glUniform1f(light_shader.locations.ambient_level, 0.3)
     default_shader.Use()
