@@ -245,10 +245,16 @@ class GameMap(object):
             self.object_cache[tile] = obj
 
     def AddActor(self,pos,actor):
-        self.data[pos.x][pos.y].AddActor(actor)
+        try:
+            self.data[pos.x][pos.y].AddActor(actor)
+        except IndexError:
+            pass
 
     def RemoveActor(self,pos,actor):
-        self.data[pos.x][pos.y].RemoveActor(actor)
+        try:
+            self.data[pos.x][pos.y].RemoveActor(actor)
+        except IndexError:
+            pass
 
 class TimeOfDay(object):
     def __init__(self,t):
@@ -295,7 +301,7 @@ class TimeOfDay(object):
     def Nightlight(self):
         #Direction will be
 
-        return (1,3,-5),(0.25*0.5,0.25*0.5,0.4*0.5)
+        return (1,3,-5),(0.25,0.25,0.4)
 
 class GameView(ui.RootElement):
     def __init__(self):

@@ -1,5 +1,7 @@
 import math,os
 
+import warnings
+warnings.simplefilter('error')
 class FatalError(Exception):
     pass
 
@@ -80,7 +82,10 @@ class Point(object):
         return self.x**2 + self.y**2
 
     def unit_vector(self):
-        return self/self.length()
+        if self.length() != 0:
+            return self/self.length()
+        else:
+            return self
 
     def direction(self):
         return Point(1 if self.x > 0 else -1 if self.x < 0 else 0,

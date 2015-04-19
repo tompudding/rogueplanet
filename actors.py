@@ -116,6 +116,7 @@ class Actor(object):
             elif target_x < 0:
                 amount.x = -pos.x
                 target_x = 0
+
             target_tile_x = self.map.data[int(target_x)][int(pos.y)]
             if target_tile_x.type in game_view.TileTypes.Impassable:
                 amount.x = 0
@@ -258,21 +259,71 @@ class Enemy(Actor):
     width   = 16
     height  = 16
     speed = 0.04
+    random_segments = 200
+    seek_distance = 8
+    brightness_threshold = 0.1
+
+    def __init__(self,map,pos):
+        self.last_random = 0
+        super(Enemy,self).__init__(map,pos)
 
     def get_brightness(self):
         sp = self.screen_pos
-        x = glReadPixels(sp.x-self.width/2,sp.y-self.width/2,self.width,self.height,GL_RGB,GL_FLOAT)
+        self.pixel_data = glReadPixels(sp.x-self.width/2,sp.y-self.width/2,self.width,self.height,GL_RGB,GL_FLOAT)[:,:,1:3]
 
-        return numpy.average(x[:,:,1:3])
+        return numpy.average(self.pixel_data)
 
     def Update(self,t):
         brightness = self.get_brightness()
         player_diff = globals.game_view.map.player.pos - self.pos
         player_distance = player_diff.length()
-        distance,angle = cmath.polar(player_diff.x + player_diff.y*1j)
-        self.set_angle(angle+math.pi)
-        self.move_direction = player_diff.unit_vector()*self.speed
+        if brightness > self.brightness_threshold:
+            self.avoid_light(player_diff, player_distance)
+        elif player_distance < self.seek_distance:
+            self.seek_player(player_diff,player_distance)
+        else:
+            self.random_walk()
+        d,angle = cmath.polar(self.move_direction.x + self.move_direction.y*1j)
+        self.set_angle(angle + math.pi)
         super(Enemy,self).Update(t)
+
+    def seek_player(self, player_diff, player_distance):
+        distance,angle = cmath.polar(player_diff.x + player_diff.y*1j)
+        self.seek_distance = 30 #We go up after seeing him
+        self.move_direction = player_diff.unit_vector()*self.speed
+
+    def random_walk(self):
+        elapsed = globals.time - self.last_random
+        if elapsed < self.random_segments:
+            return
+        self.last_random = globals.time
+        a = random.random()*2*math.pi
+        d = cmath.rect(self.speed,a)
+        self.set_angle(a+math.pi)
+        self.move_direction = Point(d.real,d.imag)
+
+    def avoid_light(self, player_diff, player_distance):
+        #Get the brightness at a few points and go in the direction that it's
+        #Use green light for some reason
+        elapsed = globals.time - self.last_random
+        if elapsed < self.random_segments:
+            return
+        self.last_random = globals.time
+        max_index = numpy.argmax(self.pixel_data[:,:,1:2])
+        min_index = numpy.argmin(self.pixel_data[:,:,1:2])
+        indices = numpy.unravel_index((max_index,min_index),self.pixel_data.shape)
+        max_index = indices[0][0],indices[1][0],indices[2][0]
+        min_index = indices[0][1],indices[1][1],indices[2][1]
+        #print 'max=',max_index,self.pixel_data[max_index]
+        #print 'test',self.pixel_data[indices]
+        d = Point(indices[0][0]-indices[0][1],indices[1][0]-indices[1][1]).unit_vector()
+        if d.length() == 0:
+            self.seek_player(player_diff, player_distance)
+            self.move_direction *= -1
+
+        self.move_direction = d.unit_vector()*self.speed
+
+
 
 
 class Player(Actor):

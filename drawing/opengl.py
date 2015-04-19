@@ -382,6 +382,7 @@ def EndFrameGameMode():
     glDrawElements(GL_QUADS,quad_buffer.current_size,GL_UNSIGNED_INT,quad_buffer.indices)
 
     #Now get the nighttime illumination
+    #dev hack so I can see what's going on
     # nightlight_dir,nightlight_colour = timeofday.Nightlight()
     # quad_buffer = globals.nightlight_quads
     # glUniform1i(light_shader.locations.light_type, 1)
