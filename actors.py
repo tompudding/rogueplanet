@@ -302,17 +302,23 @@ class SentryLight(ConeLight):
         self.angle = self.initial_angle + math.sin(float(t+self.offset)/self.duration)*self.max_disturb
 
 class Torch(ConeLight):
+    max_level = 100
+    burn_rate = 0.005
+    restore_rate = 0.003
+    on_penalty = 2
     def __init__(self,parent,offset):
         self.quad_buffer = drawing.QuadBuffer(4)
         self.quad = drawing.Quad(self.quad_buffer)
         self.shadow_quad = globals.shadow_quadbuffer.NewLight()
         self.shadow_index = self.shadow_quad.shadow_index
         self.parent = parent
+        self.last_update    = None
         self.colour = (1,1,1)
         self.angle = 0.0
         self.offset = cmath.polar(offset.x + offset.y*1j)
         self.angle_width = 0.5
         self.on = False
+        self.level = self.max_level
         globals.cone_lights.append(self)
 
     @property
@@ -327,7 +333,35 @@ class Torch(ConeLight):
         pos = (self.parent.pos + Point(offset.real,offset.imag))*globals.tile_dimensions
         return (pos.x,pos.y,self.z)
 
+    def turn_on(self):
+        self.on = True
+        self.adjust_level(-self.on_penalty)
+
+    def turn_off(self):
+        self.on = False
+
+    def adjust_level(self, amount):
+        self.level += amount
+        if self.level > self.max_level:
+            self.level = self.max_level
+        if self.level < 0:
+            self.level = 0
+            self.on = False
+        self.parent.info_box.torch_data.power.SetBarLevel(float(self.level)/self.max_level)
+
     def Update(self,t):
+        if self.last_update == None:
+            self.last_update = globals.time
+            return
+        elapsed = globals.time - self.last_update
+        self.last_update = globals.time
+        if self.on:
+            burned = elapsed * self.burn_rate
+            self.adjust_level(-burned)
+        else:
+            restored = elapsed * self.restore_rate
+            self.adjust_level(restored)
+
         box = (globals.tile_scale*Point(self.width,self.height))
         bl = Point(*self.pos[:2]) - box*0.5
         tr = bl + box
@@ -627,7 +661,7 @@ class TorchItem(Item):
         super(TorchItem,self).__init__(player)
 
     def Activate(self,pos):
-        self.player.torch.on = True
+        self.player.torch.turn_on()
 
     def deactivate(self,pos):
-        self.player.torch.on = False
+        self.player.torch.turn_off()
