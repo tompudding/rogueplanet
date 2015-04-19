@@ -137,7 +137,26 @@ class Light(BaseLight):
 class ConeLight(object):
     width = 400
     height = 400
-    def __init__(self,parent):
+    z = 60
+    def __init__(self,pos,angle,width):
+        self.quad_buffer = drawing.QuadBuffer(4)
+        self.quad = drawing.Quad(self.quad_buffer)
+        self.shadow_quad = globals.shadow_quadbuffer.NewLight()
+        self.shadow_index = self.shadow_quad.shadow_index
+        self.colour = (1,1,1)
+        self.angle = angle
+        self.angle_width = width
+        pos = pos*globals.tile_dimensions
+        self.pos = (pos.x,pos.y,self.z)
+        globals.cone_lights.append(self)
+
+    @property
+    def screen_pos(self):
+        p = self.pos
+        return ((p[0] - globals.game_view.viewpos._pos.x)*globals.scale.x,(p[1]-globals.game_view.viewpos._pos.y)*globals.scale.y,self.z)
+
+class Torch(ConeLight):
+    def __init__(self,parent,offset):
         self.quad_buffer = drawing.QuadBuffer(4)
         self.quad = drawing.Quad(self.quad_buffer)
         self.shadow_quad = globals.shadow_quadbuffer.NewLight()
@@ -145,21 +164,19 @@ class ConeLight(object):
         self.parent = parent
         self.colour = (1,1,1)
         self.angle = 0.0
+        self.offset = cmath.polar(offset.x + offset.y*1j)
         self.angle_width = 0.5
         globals.cone_lights.append(self)
 
     @property
     def pos(self):
-        return (self.parent.pos.x*globals.tile_dimensions.x,self.parent.pos.y*globals.tile_dimensions.y,10)
-
-    @property
-    def screen_pos(self):
-        p = self.pos
-        return ((p[0] - globals.game_view.viewpos._pos.x)*globals.scale.x,(p[1]-globals.game_view.viewpos._pos.y)*globals.scale.y)
+        offset = cmath.rect(self.offset[0],self.offset[1]+self.parent.angle)
+        pos = (self.parent.pos + Point(offset.real,offset.imag))*globals.tile_dimensions
+        return (pos.x,pos.y,self.z)
 
     def Update(self,t):
         box = (globals.tile_scale*Point(self.width,self.height))
-        bl = (self.parent.pos * globals.tile_dimensions) - box*0.5
+        bl = Point(*self.pos[:2]) - box*0.5
         tr = bl + box
         bl = bl.to_int()
         tr = tr.to_int()
@@ -175,7 +192,7 @@ class Player(Actor):
     def __init__(self,map,pos):
         self.mouse_pos = Point(0,0)
         #self.light = Light(self)
-        self.torch = ConeLight(self)
+        self.torch = Torch(self,Point(-(self.width/globals.tile_dimensions.x)*0.6,0))
         super(Player,self).__init__(map,pos)
 
     def Update(self,t):
