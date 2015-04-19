@@ -105,11 +105,13 @@ class Actor(object):
             return
         elapsed = globals.time - self.last_update
         self.last_update = globals.time
-        if self.interacting:
-            return
+
 
         self.move_speed += self.move_direction*elapsed*globals.time_step
         self.move_speed *= 0.7*(1-(elapsed/1000.0))
+
+        #if self.interacting:
+        #    self.move_speed = Point(0,0)
 
         amount = Point(self.move_speed.x*elapsed*globals.time_step,self.move_speed.y*elapsed*globals.time_step)
 
@@ -513,9 +515,9 @@ class Player(Actor):
                                                      pos = Point(0.5,0.36),
                                                      tr = Point(1,0.66),
                                                      level = 0.6,
-                                                     bar_colours = (drawing.constants.colours.green,
+                                                     bar_colours = (drawing.constants.colours.red,
                                                                     drawing.constants.colours.yellow,
-                                                                    drawing.constants.colours.red),
+                                                                    drawing.constants.colours.green),
                                                      border_colour = drawing.constants.colours.white)
         self.info_box.torch_data.Disable()
         self.inv_quads = [drawing.Quad(globals.screen_texture_buffer,tc = globals.ui_atlas.TextureUiCoords('empty.png')) for i in xrange(4)]

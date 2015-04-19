@@ -544,8 +544,8 @@ class GameView(ui.RootElement):
         self.enemies = []
         self.fixed_light = actors.FixedLight( Point(11,38),Point(26,9) )
         self.interact_box = ui.Box(parent = globals.screen_root,
-                                   pos = Point(0.3,0.4),
-                                   tr = Point(0.7,0.6),
+                                   pos = Point(0.3,0.0),
+                                   tr = Point(0.5,0.08),
                                    colour = (0.5,0.5,0.5,0.7))
         self.interact_box.title = ui.TextBox(self.interact_box,
                                              bl = Point(0,0),
@@ -553,15 +553,15 @@ class GameView(ui.RootElement):
                                              text = 'Opening...',
                                              textType = drawing.texture.TextTypes.SCREEN_RELATIVE,
                                              colour = (0,0,0,1),
-                                             scale = 15,
+                                             scale = 9,
                                              alignment = drawing.texture.TextAlignments.CENTRE)
         self.interact_box.progress = ui.PowerBar(self.interact_box,
                                                  pos = Point(0.1,0.3),
                                                  tr = Point(0.9,0.6),
                                                  level = 0.6,
-                                                 bar_colours = (drawing.constants.colours.green,
+                                                 bar_colours = (drawing.constants.colours.red,
                                                                 drawing.constants.colours.yellow,
-                                                                drawing.constants.colours.red),
+                                                                drawing.constants.colours.green),
                                                  border_colour = drawing.constants.colours.white)
         self.interact_box.Disable()
 
