@@ -21,6 +21,7 @@ class Actor(object):
     texture = None
     width   = None
     height  = None
+    threshold = 0.01
     def __init__(self,map,pos):
         self.map            = map
         self.tc             = globals.atlas.TextureSpriteCoords('%s.png' % self.texture)
@@ -29,26 +30,44 @@ class Actor(object):
         self.corners = self.size, Point(-self.size.x,self.size.y), Point(-self.size.x,-self.size.y), Point(self.size.x,-self.size.y)
         self.corners        = [p*0.5 for p in self.corners]
         self.corners_polar  = [(p.length(),((1+i*2)*math.pi)/4) for i,p in enumerate(self.corners)]
+        self.radius_square  = (self.size.x/2)**2 + (self.size.y/2)**2
+        self.radius         = math.sqrt(self.radius_square)
         self.corners_euclid = [p for p in self.corners]
         self.current_sound  = None
         self.last_update    = None
         self.dead           = False
         self.move_speed     = Point(0,0)
         self.move_direction = Point(0,0)
+        self.pos = None
         self.SetPos(pos)
         self.set_angle(3*math.pi/2)
 
+    def RemoveFromMap(self):
+        if self.pos != None:
+            bl = self.pos.to_int()
+            tr = (self.pos+self.size).to_int()
+            for x in xrange(bl.x,tr.x+1):
+                for y in xrange(bl.y,tr.y+1):
+                    self.map.RemoveActor(Point(x,y),self)
+
     def SetPos(self,pos):
+        self.RemoveFromMap()
         self.pos = pos
 
         self.vertices = [((pos + corner)*globals.tile_dimensions).to_int() for corner in self.corners_euclid]
 
-        #bl = pos * globals.tile_dimensions
-        #tr = bl + (globals.tile_scale*Point(self.width,self.height))
-        #bl = bl.to_int()
-        #tr = tr.to_int()
+        bl = pos
+        tr = bl + self.size
+        bl = bl.to_int()
+        tr = tr.to_int()
         #self.quad.SetVertices(bl,tr,4)
         self.quad.SetAllVertices(self.vertices, 4)
+        for x in xrange(bl.x,tr.x+1):
+            for y in xrange(bl.y,tr.y+1):
+                self.map.AddActor(Point(x,y),self)
+
+    def TriggerCollide(self,other):
+        pass
 
 
     def set_angle(self, angle):
@@ -71,6 +90,21 @@ class Actor(object):
         self.move_speed *= 0.7*(1-(elapsed/1000.0))
 
         amount = Point(self.move_speed.x*elapsed*globals.time_step,self.move_speed.y*elapsed*globals.time_step)
+
+        bl = self.pos.to_int()
+        tr = (self.pos+self.size).to_int()
+        for x in xrange(bl.x,tr.x+1):
+            for y in xrange(bl.y,tr.y+1):
+                for actor in self.map.data[x][y].actors:
+                    if actor is self:
+                        continue
+                    distance = actor.pos - self.pos
+                    if distance.SquareLength() < self.radius_square + actor.radius_square:
+                        overlap = self.radius + actor.radius - distance.length()
+                        adjust = distance.unit_vector()*-overlap
+                        #print type(self),self.radius,actor.radius,distance.length(),overlap,adjust
+                        amount += adjust*0.1
+                        #We've hit, so move us away from it's centre by the overlap
 
         #check each of our four corners
         for corner in self.corners:
@@ -237,7 +271,6 @@ class Enemy(Actor):
         player_distance = player_diff.length()
         distance,angle = cmath.polar(player_diff.x + player_diff.y*1j)
         self.set_angle(angle+math.pi)
-        print player_distance
         self.move_direction = player_diff.unit_vector()*self.speed
         super(Enemy,self).Update(t)
 

@@ -146,6 +146,7 @@ class TileData(object):
     def __init__(self, type, pos, last_type):
         self.pos  = pos
         self.type = type
+        self.actors = {}
         try:
             self.name = self.texture_names[type]
         except KeyError:
@@ -160,6 +161,15 @@ class TileData(object):
         self.quad.Delete()
     def Interact(self,player):
         pass
+    def AddActor(self,actor):
+        self.actors[actor] = True
+
+    def RemoveActor(self,actor):
+        try:
+            del self.actors[actor]
+        except KeyError:
+            pass
+
 
 class LightTile(TileData):
     def __init__(self, type, pos, last_type):
@@ -233,6 +243,12 @@ class GameMap(object):
         #Now for each tile that the object touches, put it in the cache
         for tile in obj.CoveredTiles():
             self.object_cache[tile] = obj
+
+    def AddActor(self,pos,actor):
+        self.data[pos.x][pos.y].AddActor(actor)
+
+    def RemoveActor(self,pos,actor):
+        self.data[pos.x][pos.y].RemoveActor(actor)
 
 class TimeOfDay(object):
     def __init__(self,t):
@@ -347,9 +363,10 @@ class GameView(ui.RootElement):
         self.mouse_world = self.viewpos.pos + self.mouse_pos
         self.map.player.mouse_pos = self.mouse_world
 
-        self.map.player.Update(t)
+
         for enemy in self.enemies:
             enemy.Update(t)
+        self.map.player.Update(t)
 
     def GameOver(self):
         self.game_over = True
