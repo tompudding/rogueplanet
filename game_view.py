@@ -135,6 +135,7 @@ class TileTypes:
     WALL                = 2
     TILE                = 3
     PLAYER              = 4
+    LIGHT               = 5
     Impassable = set([WALL])
 
 class TileData(object):
@@ -142,7 +143,7 @@ class TileData(object):
                      TileTypes.WALL          : 'wall.png',
                      TileTypes.TILE          : 'tile.png',}
 
-    def __init__(self, type, pos):
+    def __init__(self, type, pos, last_type):
         self.pos  = pos
         self.type = type
         try:
@@ -160,8 +161,17 @@ class TileData(object):
     def Interact(self,player):
         pass
 
-def TileDataFactory(map,type,pos):
-    return TileData(type,pos)
+class LightTile(TileData):
+    def __init__(self, type, pos, last_type):
+        #Firstly decide what kind of tile we want
+        super(LightTile,self).__init__(last_type,pos,last_type)
+        self.light = actors.Light(pos)
+
+
+def TileDataFactory(map,type,pos,last_type):
+    if type == TileTypes.LIGHT:
+        return LightTile(type,pos,last_type)
+    return TileData(type,pos,last_type)
 
 class GameMap(object):
     input_mapping = {' ' : TileTypes.GRASS,
@@ -169,7 +179,9 @@ class GameMap(object):
                      '|' : TileTypes.WALL,
                      '-' : TileTypes.WALL,
                      '+' : TileTypes.WALL,
-                     'p' : TileTypes.PLAYER,}
+                     'p' : TileTypes.PLAYER,
+                     'l' : TileTypes.LIGHT}
+
     def __init__(self,name,parent):
         self.size   = Point(89,49)
         self.data   = [[TileTypes.GRASS for i in xrange(self.size.y)] for j in xrange(self.size.x)]
@@ -182,6 +194,7 @@ class GameMap(object):
         y = self.size.y - 1
         player_pos = None
         with open(name) as f:
+            last = None
             for line in f:
                 line = line.strip('\n')
                 if len(line) < self.size.x:
@@ -190,9 +203,12 @@ class GameMap(object):
                     line = line[:self.size.x]
                 for inv_x,tile in enumerate(line[::-1]):
                     x = self.size.x-1-inv_x
+
                     #try:
                     if 1:
-                        td = TileDataFactory(self,self.input_mapping[tile],Point(x,y))
+                        #hack, also give the adjacent tile so we know what kind of background to put it on...
+                        td = TileDataFactory(self,self.input_mapping[tile],Point(x,y),last)
+                        last = self.input_mapping[tile]
                         for tile_x in xrange(td.size.x):
                             for tile_y in xrange(td.size.y):
                                 if self.data[x+tile_x][y+tile_y] != TileTypes.GRASS:

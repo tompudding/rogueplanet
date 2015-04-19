@@ -104,23 +104,24 @@ class GameMode(Mode):
             key = self.translations[input_key]
         except KeyError:
             key = input_key
-        if self.keyflags[key] in self.keydownmap:
-            return
-        if key in self.direction_amounts:
-            self.keydownmap[self.keyflags[key]] = input_key
-            self.parent.map.player.move_direction += self.direction_amounts[key]
+        if key in self.keyflags:
+            if self.keyflags[key] in self.keydownmap:
+                return
+            if key in self.direction_amounts:
+                self.keydownmap[self.keyflags[key]] = input_key
+                self.parent.map.player.move_direction += self.direction_amounts[key]
 
     def KeyUp(self,input_key):
         try:
             key = self.translations[input_key]
         except KeyError:
             key = input_key
-
-        if self.keyflags[key] not in self.keydownmap:
-            return
-        if key in self.direction_amounts and (self.keydownmap[self.keyflags[key]] == input_key):
-            del self.keydownmap[self.keyflags[key]]
-            self.parent.map.player.move_direction -= self.direction_amounts[key]
+        if key in self.keyflags:
+            if self.keyflags[key] not in self.keydownmap:
+                return
+            if key in self.direction_amounts and (self.keydownmap[self.keyflags[key]] == input_key):
+                del self.keydownmap[self.keyflags[key]]
+                self.parent.map.player.move_direction -= self.direction_amounts[key]
 
 class GameOver(Mode):
     blurb = "GAME OVER"
