@@ -105,6 +105,7 @@ class Actor(object):
                             adjust = distance.unit_vector()*-overlap
                             #print type(self),self.radius,actor.radius,distance.length(),overlap,adjust
                             amount += adjust*0.1
+                            self.TriggerCollide(actor)
                             #We've hit, so move us away from it's centre by the overlap
                 except IndexError:
                     pass
@@ -153,6 +154,12 @@ class Actor(object):
     def GetPosCentre(self):
         return self.pos
 
+    def click(self, pos, button):
+        pass
+
+    def unclick(self, pos, button):
+        pass
+
     @property
     def screen_pos(self):
         p = (self.pos*globals.tile_dimensions - globals.game_view.viewpos._pos)*globals.scale
@@ -170,6 +177,7 @@ class Light(object):
         self.shadow_index = self.shadow_quad.shadow_index
         self.colour = (1,1,1)
         self.set_pos(pos)
+        self.on = True
         globals.lights.append(self)
 
     def set_pos(self,pos):
@@ -198,6 +206,7 @@ class ActorLight(object):
         self.quad_buffer = drawing.QuadBuffer(4)
         self.quad = drawing.Quad(self.quad_buffer)
         self.colour = (1,1,1)
+        self.on = True
         globals.non_shadow_lights.append(self)
 
     def Update(self,t):
@@ -221,6 +230,7 @@ class ConeLight(object):
         self.colour = (1,1,1)
         self.angle = angle
         self.angle_width = width
+        self.on = True
         pos = pos*globals.tile_dimensions
         self.pos = (pos.x,pos.y,self.z)
         globals.cone_lights.append(self)
@@ -241,6 +251,7 @@ class Torch(ConeLight):
         self.angle = 0.0
         self.offset = cmath.polar(offset.x + offset.y*1j)
         self.angle_width = 0.5
+        self.on = False
         globals.cone_lights.append(self)
 
     @property
@@ -270,7 +281,7 @@ class Enemy(Actor):
     height  = 16
     speed = 0.04
     random_segments = 200
-    seek_distance = 8
+    seek_distance = 16
     brightness_threshold = 0.1
     flee_threshold = 0.03
 
@@ -284,6 +295,13 @@ class Enemy(Actor):
         self.pixel_data = glReadPixels(sp.x-self.width/2,sp.y-self.width/2,self.width,self.height,GL_RGB,GL_FLOAT)[:,:,1:3]
 
         return numpy.average(self.pixel_data)
+
+    def TriggerCollide(self,other):
+        if isinstance(other,Player):
+            self.attack(other)
+
+    def attack(self, player):
+        print self,'attacking!',player
 
     def Update(self,t):
         brightness = self.get_brightness()
@@ -353,7 +371,6 @@ class Enemy(Actor):
 
 
 
-
 class Player(Actor):
     texture = 'player'
     width = 16
@@ -380,3 +397,15 @@ class Player(Actor):
         self.set_angle(angle+math.pi)
         self.torch.angle = angle
 
+    def TriggerCollide(self,other):
+        if isinstance(other,Enemy):
+            other.attack(self)
+
+
+    def click(self, pos, button):
+        print 'click',pos,button
+        self.torch.on = True
+
+    def unclick(self, pos, button):
+        print 'unclick',pos,button
+        self.torch.on = False

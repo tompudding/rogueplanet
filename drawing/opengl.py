@@ -396,6 +396,8 @@ def EndFrameGameMode():
     Translate(-globals.game_view.viewpos.pos.x,-globals.game_view.viewpos.pos.y,0)
     glUniform1i(light_shader.locations.light_type, 2)
     for light in globals.lights:
+        if not light.on:
+            continue
         glUniform1i(light_shader.locations.shadow_index, light.shadow_index)
         glUniform3f(light_shader.locations.light_pos, *light.screen_pos)
         glUniform3f(light_shader.locations.light_colour, *light.colour)
@@ -405,6 +407,8 @@ def EndFrameGameMode():
         glDrawElements(GL_QUADS,light.quad_buffer.current_size,GL_UNSIGNED_INT,light.quad_buffer.indices)
 
     for light in globals.cone_lights:
+        if not light.on:
+            continue
         glUniform1i(light_shader.locations.shadow_index, light.shadow_index)
         glUniform3f(light_shader.locations.light_pos, *light.screen_pos)
         glUniform3f(light_shader.locations.light_colour, *light.colour)

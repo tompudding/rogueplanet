@@ -22,6 +22,9 @@ class Mode(object):
     def MouseButtonDown(self,pos,button):
         return False,False
 
+    def MouseButtonUp(self,pos,button):
+        return False, False
+
     def Update(self,t):
         pass
 
@@ -122,6 +125,16 @@ class GameMode(Mode):
             if key in self.direction_amounts and (self.keydownmap[self.keyflags[key]] == input_key):
                 del self.keydownmap[self.keyflags[key]]
                 self.parent.map.player.move_direction -= self.direction_amounts[key]
+
+    def MouseButtonDown(self,pos,button):
+        self.parent.map.player.click(pos,button)
+        return False,False
+
+    def MouseButtonUp(self,pos,button):
+        self.parent.map.player.unclick(pos,button)
+        return False,False
+
+
 
 class GameOver(Mode):
     blurb = "GAME OVER"
