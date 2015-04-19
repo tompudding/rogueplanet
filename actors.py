@@ -712,7 +712,7 @@ class FlareItem(Item):
 
     def Activate(self,pos):
         if self.end:
-            print 'flares exhausted'
+            #sound for flares exhausted
             return
         self.start_pos = self.player.pos
         self.end_pos = globals.game_view.mouse_world.to_float()/globals.tile_dimensions
@@ -774,9 +774,7 @@ class CommsItem(Item):
         for enemy in globals.game_view.enemies:
             diff = (enemy.pos - self.start_pos)*globals.tile_dimensions
             distance = diff.length()
-            print distance
             if distance < self.radius*0.45:
-                print 'damaging!'
                 enemy.AdjustHealth(-5)
 
         if not self.light:

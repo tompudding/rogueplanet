@@ -213,7 +213,6 @@ class SentryLightTile(TileData):
         super(SentryLightTile,self).__init__(TileTypes.GRASS,pos,last_type,parent)
         #which direction are we pointing? It goes up, up, left, right, down, down
         self.light = actors.SentryLight(pos,self.angles[SentryLightTile.count],0.9,parent)
-        print SentryLightTile.count
         SentryLightTile.count += 1
 
 class Door(TileData):
@@ -233,7 +232,6 @@ class Door(TileData):
         if not self.locked:
             self.Toggle()
         else:
-            print 'it\'s locked',player.has_key
             if player.has_key:
                 #play an unlocking sound
                 self.Toggle()
@@ -482,7 +480,6 @@ class GameMap(object):
 
     def get_tile_from_world(self,pos):
         pos = (pos/globals.tile_dimensions).to_int()
-        print pos
         try:
             return self.data[pos.x][pos.y]
         except IndexError:
