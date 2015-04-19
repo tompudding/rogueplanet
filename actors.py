@@ -62,6 +62,8 @@ class Actor(object):
             #if self.dead_sound:
             #    self.dead_sound.play()
             self.health = 0
+            self.dead = True
+            self.Death()
 
     def damage(self, amount):
         if globals.time < self.last_damage + self.immune_duration:
@@ -198,7 +200,7 @@ class Actor(object):
 
 class Light(object):
     z = 60
-    def __init__(self,pos,radius = 400):
+    def __init__(self,pos,radius = 400, intensity = 1):
         self.radius = radius
         self.width = self.height = radius
         self.quad_buffer = drawing.QuadBuffer(4)
@@ -206,8 +208,12 @@ class Light(object):
         self.shadow_quad = globals.shadow_quadbuffer.NewLight()
         self.shadow_index = self.shadow_quad.shadow_index
         self.colour = (1,1,1)
+        self.intensity = float(intensity)
         self.set_pos(pos)
         self.on = True
+        self.append_to_list()
+
+    def append_to_list(self):
         globals.lights.append(self)
 
     def set_pos(self,pos):
@@ -229,6 +235,10 @@ class Light(object):
         p = self.pos
         return ((p[0] - globals.game_view.viewpos._pos.x)*globals.scale.x,(p[1]-globals.game_view.viewpos._pos.y)*globals.scale.y,self.z)
 
+class NonShadowLight(Light):
+    def append_to_list(self):
+        globals.non_shadow_lights.append(self)
+
 class ActorLight(object):
     z = 6
     def __init__(self,parent):
@@ -236,6 +246,8 @@ class ActorLight(object):
         self.quad_buffer = drawing.QuadBuffer(4)
         self.quad = drawing.Quad(self.quad_buffer)
         self.colour = (1,1,1)
+        self.radius = 30
+        self.intensity = 1
         self.on = True
         globals.non_shadow_lights.append(self)
 
@@ -480,6 +492,11 @@ class Enemy(Actor):
 
         self.move_direction = d.unit_vector()*self.speed
 
+    def Death(self):
+        self.RemoveFromMap()
+        self.quad.Delete()
+        globals.game_view.remove_enemy(self)
+
 
 
 class Player(Actor):
@@ -495,6 +512,7 @@ class Player(Actor):
         self.light = ActorLight(self)
         self.tilium = False
         self.flare = None
+        self.comms = None
         self.torch = Torch(self,Point(-(self.width/globals.tile_dimensions.x)*0.6,0))
         self.info_box = ui.Box(parent = globals.screen_root,
                                pos = Point(0,0),
@@ -546,6 +564,7 @@ class Player(Actor):
         self.current_item = 0
         self.attacking = False
         self.AddItem(Hand(self))
+        self.AddItem(CommsItem(self))
         self.Select(self.num_items-1)
         self.weapon = self.inventory[self.current_item]
         self.interacting = None
@@ -556,6 +575,8 @@ class Player(Actor):
             self.info_box.torch_data.Enable()
         elif isinstance(item,FlareItem):
             self.flare = item
+        elif isinstance(item,CommsItem):
+            self.comms = item
         self.inventory[self.num_items] = item
         item.SetIconQuad(self.inv_quads[self.num_items])
         self.num_items += 1
@@ -590,6 +611,8 @@ class Player(Actor):
         self.torch.Update(t)
         if self.flare:
             self.flare.Update(t)
+        if self.comms:
+            self.comms.Update(t)
 
     def deactivate(self):
         if self.interacting:
@@ -712,3 +735,49 @@ class FlareItem(Item):
 
 class CommsItem(Item):
     icon = 'comms.png'
+    warmup = 2000
+    max_intensity = 30
+    buildup = 5000
+    duration = 10000
+    radius = 300
+
+    def __init__(self,player):
+        super(CommsItem,self).__init__(player)
+        self.start_time = None
+        self.light = None
+
+    def Activate(self,pos):
+
+        self.start_time = globals.time + self.warmup
+        self.full_time = self.start_time + self.buildup
+        self.start_pos = self.player.pos
+
+        #self.light = Light(self.start_pos, radius=200)
+
+    def Update(self,t):
+        if not self.start_time:
+            return
+        if globals.time < self.start_time:
+            #not ready yet
+            return
+
+        if globals.time > self.full_time:
+            intensity = self.max_intensity
+        else:
+            partial = float(globals.time - self.start_time)/self.buildup
+            intensity = partial * self.max_intensity
+
+        #Kill things within our radius...
+        for enemy in globals.game_view.enemies:
+            diff = (enemy.pos - self.start_pos)*globals.tile_dimensions
+            distance = diff.length()
+            print distance
+            if distance < self.radius*0.45:
+                print 'damaging!'
+                enemy.AdjustHealth(-5)
+
+        if not self.light:
+            self.light = NonShadowLight(self.start_pos, radius=self.radius, intensity=intensity)
+        else:
+            self.light.set_pos(self.start_pos)
+            self.light.intensity = intensity

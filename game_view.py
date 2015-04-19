@@ -323,7 +323,6 @@ class TorchCrate(Crate):
         self.light = actors.FixedLight( self.pos, self.size )
     def Interacted(self):
         super(TorchCrate, self).Interacted()
-        print 'jim',self.interact_count,self.player
         if self.interact_count == 1 and self.player:
             self.player.AddItem(actors.TorchItem(self.player))
 
@@ -331,7 +330,6 @@ class FlareCrate(Crate):
     duration = 1000
     def Interacted(self):
         super(FlareCrate, self).Interacted()
-        print 'jim',self.interact_count,self.player
         if self.interact_count == 1 and self.player:
             self.player.AddItem(actors.FlareItem(self.player))
 
@@ -339,7 +337,6 @@ class CommsCrate(Crate):
     duration = 10000
     def Interacted(self):
         super(CommsCrate, self).Interacted()
-        print 'jim',self.interact_count,self.player
         if self.interact_count == 1 and self.player:
             self.player.AddItem(actors.CommsItem(self.player))
             #play has key sound
@@ -349,7 +346,6 @@ class BatteriesCrate(Crate):
     duration = 2000
     def Interacted(self):
         super(BatteriesCrate, self).Interacted()
-        print 'jim',self.interact_count,self.player
         if self.interact_count == 1 and self.player:
             self.player.torch.burn_rate = 0
             self.player.torch.on_penalty = 0
@@ -359,7 +355,6 @@ class TiliumCrate(Crate):
     duration = 10000
     def Interacted(self):
         super(TiliumCrate, self).Interacted()
-        print 'jim',self.interact_count,self.player
         if self.interact_count == 1 and self.player:
             self.player.tilium = True
 
@@ -531,6 +526,7 @@ class GameView(ui.RootElement):
     def __init__(self):
         self.atlas = globals.atlas = drawing.texture.TextureAtlas('tiles_atlas_0.png','tiles_atlas.txt')
         self.sentry_lights = []
+        self.enemies = []
         globals.ui_atlas = drawing.texture.TextureAtlas('ui_atlas_0.png','ui_atlas.txt',extra_names=False)
         self.enemy_positions = []
         self.map = GameMap('level1.txt',self)
@@ -556,7 +552,6 @@ class GameView(ui.RootElement):
         self.timeofday = TimeOfDay(0.1)
         #self.mode = modes.LevelOne(self)
         self.StartMusic()
-        self.enemies = []
         self.fixed_light = actors.FixedLight( Point(11,38),Point(26,9) )
         self.interact_box = ui.Box(parent = globals.screen_root,
                                    pos = Point(0.3,0.0),
@@ -587,6 +582,9 @@ class GameView(ui.RootElement):
         pass
         #pygame.mixer.music.play(-1)
         #self.music_playing = True
+
+    def remove_enemy(self,to_remove):
+        self.enemies = [enemy for enemy in self.enemies if enemy is not to_remove]
 
     def Draw(self):
         drawing.ResetState()

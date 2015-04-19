@@ -16,6 +16,7 @@ uniform float cone_dir;
 uniform float cone_width;
 uniform float ambient_attenuation;
 uniform float light_radius;
+uniform float light_intensity;
 uniform vec2 translation;
 uniform vec2 scale;
 #define NUM_VALUES 4
@@ -108,10 +109,10 @@ void main()
         //todo: use a height map to get the z coord
         vec3 light_dir = normalize(world_light_pos-current_pos);
         vec3 diffuse = light_colour*max(dot(light_dir,normal),0.0);
-        float distance = min(length(adjust_xy)/30.0,1);
+        float distance = min(length(adjust_xy)/light_radius,1);
         vec3 intensity = diffuse*(1-distance*distance)*(1-ambient_attenuation);
         //out_colour = mix(vec4(0,0,0,1),colour,value);
-        out_colour = vec4(colour.rgb*intensity,1);
+        out_colour = vec4(colour.rgb*intensity*light_intensity,1);
     }
     else if(4 == light_type){
         //This is for the cone lights
