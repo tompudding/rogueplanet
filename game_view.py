@@ -141,8 +141,9 @@ class TileTypes:
     DOOR_CLOSED         = 8,
     DOOR_OPEN           = 9,
     SENTRY_LIGHT        = 10,
+    CRATE               = 11,
 
-    Impassable = set([WALL, PANELS, CHAIR, DOOR_CLOSED])
+    Impassable = set([WALL, PANELS, CHAIR, DOOR_CLOSED, CRATE])
     Doors = set([DOOR_CLOSED, DOOR_OPEN])
 
 class TileData(object):
@@ -152,6 +153,7 @@ class TileData(object):
                      TileTypes.PANELS        : 'tile.png',
                      TileTypes.CHAIR         : 'tile.png',
                      TileTypes.PLAYER        : 'tile.png',
+                     TileTypes.CRATE         : 'crate.png',
                      TileTypes.DOOR_CLOSED   : 'door_closed.png',
                      TileTypes.DOOR_OPEN     : 'door_open.png'}
 
@@ -217,6 +219,10 @@ class Door(TileData):
         if not self.locked:
             self.Toggle()
 
+class Crate(TileData):
+    def __init__(self, type, pos, last_type, parent):
+        super(Crate, self).__init__(type, pos, last_type, parent)
+        self.light = actors.FixedLight( self.pos, self.size )
 
 def TileDataFactory(map,type,pos,last_type,parent):
     if type in TileTypes.Doors:
@@ -225,6 +231,8 @@ def TileDataFactory(map,type,pos,last_type,parent):
         return LightTile(type,pos,last_type,parent)
     elif type == TileTypes.SENTRY_LIGHT:
         return SentryLightTile(type,pos,last_type,parent)
+    elif type == TileTypes.CRATE:
+        return Crate(type, pos, last_type, parent)
     return TileData(type,pos,last_type,parent)
 
 class GameMap(object):
@@ -238,7 +246,8 @@ class GameMap(object):
                      'c' : TileTypes.CHAIR,
                      's' : TileTypes.SENTRY_LIGHT,
                      'd' : TileTypes.DOOR_CLOSED,
-                     'l' : TileTypes.LIGHT}
+                     'l' : TileTypes.LIGHT,
+                     'C' : TileTypes.CRATE}
 
     def __init__(self,name,parent):
         self.size   = Point(89,49)
