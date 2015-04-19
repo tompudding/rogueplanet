@@ -1,4 +1,4 @@
 resource/sprites/player.png:tiles_atlas_0.png:0:1000.0:24:24
-resource/sprites/grass.png:tiles_atlas_0.png:24:1008.0:16:16
-resource/sprites/tile.png:tiles_atlas_0.png:40:1008.0:16:16
+resource/sprites/tile.png:tiles_atlas_0.png:24:1008.0:16:16
+resource/sprites/grass.png:tiles_atlas_0.png:40:1008.0:16:16
 resource/sprites/wall.png:tiles_atlas_0.png:56:1008.0:16:16

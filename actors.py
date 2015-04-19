@@ -145,7 +145,7 @@ class Light(object):
         return ((p[0] - globals.game_view.viewpos._pos.x)*globals.scale.x,(p[1]-globals.game_view.viewpos._pos.y)*globals.scale.y,self.z)
 
 class ActorLight(object):
-    z = 60
+    z = 6
     def __init__(self,parent):
         self.parent = parent
         self.quad_buffer = drawing.QuadBuffer(4)
@@ -154,11 +154,12 @@ class ActorLight(object):
         globals.non_shadow_lights.append(self)
 
     def Update(self,t):
-        self.quad.SetAllVertices(self.parent.vertices, 0)
+        self.vertices = [((self.parent.pos + corner*2)*globals.tile_dimensions).to_int() for corner in self.parent.corners_euclid]
+        self.quad.SetAllVertices(self.vertices, 0)
 
     @property
     def pos(self):
-        return (self.parent.pos.x*globals.tile_dimensions.x,self.parent.pos.y*globals.tile_dimensions.y,0)
+        return (self.parent.pos.x*globals.tile_dimensions.x,self.parent.pos.y*globals.tile_dimensions.y,self.z)
 
 
 class ConeLight(object):
@@ -219,7 +220,7 @@ class Player(Actor):
     def __init__(self,map,pos):
         self.mouse_pos = Point(0,0)
         super(Player,self).__init__(map,pos)
-        #self.light = ActorLight(self)
+        self.light = ActorLight(self)
         self.torch = Torch(self,Point(-(self.width/globals.tile_dimensions.x)*0.6,0))
 
     def Update(self,t):
@@ -228,7 +229,7 @@ class Player(Actor):
             globals.current_view.game_over = True
         self.UpdateMouse(self.mouse_pos,None)
         super(Player,self).Update(t)
-        #self.light.Update(t)
+        self.light.Update(t)
         self.torch.Update(t)
 
     def UpdateMouse(self,pos,rel):
