@@ -424,6 +424,9 @@ class Enemy(Actor):
 
     def attack(self, player):
         #print self,'attacking!',player
+        if random.random() < 0.1:
+            globals.sounds.enemy_inflict.stop()
+            globals.sounds.enemy_inflict.play()
         player.damage(self.attack_damage())
         globals.current_view.viewpos.ScreenShake(500)
 
@@ -468,6 +471,8 @@ class Enemy(Actor):
         diff = lights[0][1]
         self.move_direction = diff.unit_vector()*self.speed
         self.fleeing = True
+        if random.random() < 0.4:
+            random.choice(globals.sounds.enemy_light).play()
 
     def avoid_light_old(self, player_diff, player_distance):
         #Get the brightness at a few points and go in the direction that it's
@@ -494,6 +499,7 @@ class Enemy(Actor):
         self.move_direction = d.unit_vector()*self.speed
 
     def Death(self):
+        globals.sounds.enemy_death.play()
         self.RemoveFromMap()
         self.quad.Delete()
         globals.game_view.remove_enemy(self)
@@ -567,6 +573,7 @@ class Player(Actor):
         self.current_item = 0
         self.attacking = False
         self.AddItem(Hand(self))
+        self.AddItem(CommsItem(self))
         self.Select(self.num_items-1)
         self.weapon = self.inventory[self.current_item]
         self.interacting = None
@@ -724,7 +731,10 @@ class FlareItem(Item):
     def Activate(self,pos):
         if self.end:
             #sound for flares exhausted
+            globals.sounds.stop_talking()
+            globals.sounds.talking_empty.play()
             return
+        globals.sounds.flare.play()
         self.start_pos = self.player.pos
         self.end_pos = globals.game_view.mouse_world.to_float()/globals.tile_dimensions
 
@@ -749,7 +759,7 @@ class FlareItem(Item):
 
 class CommsItem(Item):
     icon = 'comms.png'
-    warmup = 2000
+    warmup = 3000
     max_intensity = 30
     buildup = 5000
     duration = 10000
@@ -759,13 +769,15 @@ class CommsItem(Item):
         super(CommsItem,self).__init__(player)
         self.start_time = None
         self.light = None
+        self.played = False
 
     def Activate(self,pos):
 
         self.start_time = globals.time + self.warmup
         self.full_time = self.start_time + self.buildup
         self.start_pos = self.player.pos
-
+        globals.sounds.stop_talking()
+        globals.sounds.comms_start.play()
         #self.light = Light(self.start_pos, radius=200)
 
     def Update(self,t):
@@ -774,6 +786,9 @@ class CommsItem(Item):
         if globals.time < self.start_time:
             #not ready yet
             return
+        if not self.played:
+            globals.sounds.beam.play()
+            self.played = True
 
         if globals.time > self.full_time:
             intensity = self.max_intensity

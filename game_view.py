@@ -237,7 +237,8 @@ class Door(TileData):
                 self.Toggle()
             else:
                 #play a locked sound
-                pass
+                globals.sounds.stop_talking()
+                globals.sounds.talking_locked.play()
         return True
 
 class LockedDoor(Door):
@@ -343,6 +344,8 @@ class FlareCrate(Crate):
         super(FlareCrate, self).Interacted()
         if self.interact_count == 1 and self.player:
             self.player.AddItem(actors.FlareItem(self.player))
+            globals.sounds.stop_talking()
+            globals.sounds.talking_flare.play()
 
 class CommsCrate(Crate):
     duration = 10000
@@ -352,6 +355,8 @@ class CommsCrate(Crate):
             self.player.AddItem(actors.CommsItem(self.player))
             #play has key sound
             self.player.has_key = True
+            globals.sounds.stop_talking()
+            globals.sounds.talking_comms.play()
 
 class BatteriesCrate(Crate):
     duration = 2000
@@ -360,6 +365,8 @@ class BatteriesCrate(Crate):
         if self.interact_count == 1 and self.player:
             self.player.torch.burn_rate = 0
             self.player.torch.on_penalty = 0
+            globals.sounds.stop_talking()
+            globals.sounds.talking_batteries.play()
 
 
 class TiliumCrate(Crate):

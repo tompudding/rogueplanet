@@ -9,6 +9,7 @@ class Sounds(object):
     def __init__(self):
         self.talking = []
         self.player_damage = []
+        self.enemy_light = []
 
         for filename in glob.glob(os.path.join('resource','sounds','*.ogg')):
             sound = pygame.mixer.Sound(filename)
@@ -19,6 +20,8 @@ class Sounds(object):
                 self.talking.append(sound)
             if name.startswith('player_damage'):
                 self.player_damage.append(sound)
+            if name.startswith('enemy_light'):
+                self.enemy_light.append(sound)
             setattr(self,name,sound)
 
     def stop_talking(self):
