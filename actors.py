@@ -471,7 +471,7 @@ class Enemy(Actor):
         diff = lights[0][1]
         self.move_direction = diff.unit_vector()*self.speed
         self.fleeing = True
-        if random.random() < 0.4:
+        if random.random() < 0.05:
             random.choice(globals.sounds.enemy_light).play()
 
     def avoid_light_old(self, player_diff, player_distance):
@@ -675,7 +675,7 @@ class Player(Actor):
         if globals.time < self.last_damage_sound + self.damage_sound_immunity:
             return
         self.last_damage_sound = globals.time
-        globals.sounds.stop_talking()
+        #globals.sounds.stop_talking()
         random.choice(globals.sounds.player_damage).play()
 
 class Item(object):
