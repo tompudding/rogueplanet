@@ -1,6 +1,5 @@
 #version 130
 #extension GL_ARB_explicit_attrib_location : require
-#extension GL_ARB_explicit_uniform_location : require
 
 uniform sampler2D tex;
 uniform int using_textures;
