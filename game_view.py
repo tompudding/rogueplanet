@@ -276,11 +276,14 @@ class RedAlertStation(TileData):
             self.red_alert = False
             for light in globals.game_view.sentry_lights + globals.lights:
                 light.colour = (1,1,1)
-            #globals.sounds.dooropen.play()
+            globals.sounds.stop_talking()
+            globals.sounds.talking_standdown.play()
         else:
             self.red_alert = True
             for light in globals.game_view.sentry_lights + globals.lights:
                 light.colour = (1,0,0)
+            globals.sounds.stop_talking()
+            globals.sounds.talking_redalert.play()
 
 
     def Interact(self,player):
