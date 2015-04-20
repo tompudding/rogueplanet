@@ -1,4 +1,4 @@
-#version 140
+#version 130
 #extension GL_ARB_explicit_attrib_location : require
 #extension GL_ARB_explicit_uniform_location : require
 
@@ -14,10 +14,10 @@ in vec2 vs_normal_coord;
 in vec2 vs_occlude_coord;
 in vec4 vs_colour;
 
-layout(location = 0) out vec4 diffuse;
-layout(location = 1) out vec4 normal;
-layout(location = 2) out vec4 displacement;
-layout(location = 3) out vec4 occlude;
+out vec4 diffuse;
+out vec4 normal;
+out vec4 displacement;
+out vec4 occlude;
 
 void main()
 {
