@@ -289,13 +289,15 @@ class RedAlertStation(TileData):
 
 class NavigationPanel(TileData):
     def Interact(self,player):
+        globals.sounds.stop_talking()
         if player.tilium:
             #play sound for victory
+            globals.sounds.talking_success.play()
             globals.current_view.mode = modes.GameWin(globals.current_view)
             globals.current_view.game_over = True
         else:
             #play sound for nothing
-            pass
+            globals.sounds.talking_enough_tilium.play()
         return True
 
 class Crate(TileData):
@@ -375,6 +377,8 @@ class TiliumCrate(Crate):
         super(TiliumCrate, self).Interacted()
         if self.interact_count == 1 and self.player:
             self.player.tilium = True
+            globals.sounds.stop_talking()
+            globals.sounds.talking_got_tilium.play()
 
 
 crate_types = [BatteriesCrate, TorchCrate, CommsCrate, FlareCrate, TiliumCrate]

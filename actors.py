@@ -573,7 +573,7 @@ class Player(Actor):
         self.current_item = 0
         self.attacking = False
         self.AddItem(Hand(self))
-        self.AddItem(CommsItem(self))
+        #self.AddItem(CommsItem(self))
         self.Select(self.num_items-1)
         self.weapon = self.inventory[self.current_item]
         self.interacting = None
@@ -658,6 +658,8 @@ class Player(Actor):
         self.info_box.health_text.SetText('\x81:%d' % self.health,colour = (1,1,0,1))
 
     def Death(self):
+        globals.sounds.stop_talking()
+        globals.sounds.player_death.play()
         globals.current_view.mode = modes.GameOver(globals.current_view)
 
     def damage(self, amount):
