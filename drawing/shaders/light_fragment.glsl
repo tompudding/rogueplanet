@@ -1,4 +1,4 @@
-#version 140
+#version 130
 
 uniform sampler2D colour_map;
 uniform sampler2D displacement_map;

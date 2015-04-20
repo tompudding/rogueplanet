@@ -1,4 +1,4 @@
-#version 140
+#version 130
 #extension GL_ARB_explicit_attrib_location : require
 #extension GL_ARB_explicit_uniform_location : require
 
@@ -7,7 +7,7 @@ uniform int using_textures;
 in vec2 texcoord;
 in vec4 colour;
 
-layout(location = 0) out vec4 out_colour;
+out vec4 out_colour;
 
 void main()
 {
