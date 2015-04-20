@@ -24,6 +24,7 @@ class GeometryBuffer(object):
 
     def __init__(self,width,height):
         self.fbo = glGenFramebuffers(1)
+        print 'fbo',self.fbo
         self.BindForWriting()
         try:
             self.InitBound(width,height)
@@ -40,7 +41,7 @@ class GeometryBuffer(object):
 
         for i in xrange(self.NUM_TEXTURES):
             glBindTexture(GL_TEXTURE_2D, self.textures[i])
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGBA, GL_FLOAT, None)
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, None)
             glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
             glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
             glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, self.textures[i], 0)
@@ -51,7 +52,7 @@ class GeometryBuffer(object):
 
         glDrawBuffers([GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3])
         if glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE:
-            print 'crapso'
+            print 'crapso_'
             raise SystemExit
 
     def BindForWriting(self):
@@ -86,7 +87,7 @@ class ShadowMapBuffer(GeometryBuffer):
 
         for i in xrange(self.NUM_TEXTURES):
             glBindTexture(GL_TEXTURE_2D, self.textures[i])
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGBA, GL_FLOAT, None)
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, None)
             glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
             glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
             glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, self.textures[i], 0)
