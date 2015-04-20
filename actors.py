@@ -506,6 +506,7 @@ class Player(Actor):
     height = 16
     initial_health = 100
     immune_duration = 200
+    damage_sound_immunity = 1000
     def __init__(self,map,pos):
         self.mouse_pos = Point(0,0)
         self.has_key = False
@@ -514,6 +515,7 @@ class Player(Actor):
         self.tilium = False
         self.flare = None
         self.comms = None
+        self.last_damage_sound = 0
         self.torch = Torch(self,Point(-(self.width/globals.tile_dimensions.x)*0.6,0))
         self.info_box = ui.Box(parent = globals.screen_root,
                                pos = Point(0,0),
@@ -655,8 +657,17 @@ class Player(Actor):
         if globals.time < self.last_damage + self.immune_duration:
             #woop we get to skip
             return
+        self.damage_sound()
         self.last_damage = globals.time
         self.AdjustHealth(-amount)
+
+
+    def damage_sound(self):
+        if globals.time < self.last_damage_sound + self.damage_sound_immunity:
+            return
+        self.last_damage_sound = globals.time
+        globals.sounds.stop_talking()
+        random.choice(globals.sounds.player_damage).play()
 
 class Item(object):
     sounds = None

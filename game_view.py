@@ -222,10 +222,10 @@ class Door(TileData):
     def Toggle(self):
         if self.type == TileTypes.DOOR_CLOSED:
             self.type = TileTypes.DOOR_OPEN
-            #globals.sounds.dooropen.play()
+            globals.sounds.door.play()
         else:
             self.type = TileTypes.DOOR_CLOSED
-            #globals.sounds.doorclosed.play()
+            globals.sounds.doorclosed.play()
         self.quad.SetTextureCoordinates(globals.atlas.TextureSpriteCoords(self.texture_names[self.type]))
 
     def Interact(self,player):
@@ -334,6 +334,8 @@ class TorchCrate(Crate):
         super(TorchCrate, self).Interacted()
         if self.interact_count == 1 and self.player:
             self.player.AddItem(actors.TorchItem(self.player))
+            globals.sounds.stop_talking()
+            globals.sounds.talking_torch.play()
 
 class FlareCrate(Crate):
     duration = 1000
@@ -589,7 +591,8 @@ class GameView(ui.RootElement):
             self.enemies.append( actors.Enemy( self.map, pos ) )
 
     def StartMusic(self):
-        pass
+        globals.sounds.stop_talking()
+        globals.sounds.talking_intro.play()
         #pygame.mixer.music.play(-1)
         #self.music_playing = True
 
