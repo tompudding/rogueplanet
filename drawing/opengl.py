@@ -142,10 +142,31 @@ class ShaderData(object):
             codes.append(data)
         VERTEX_SHADER   = shaders.compileShader(codes[0]  , GL_VERTEX_SHADER)
         FRAGMENT_SHADER = shaders.compileShader(codes[1]  , GL_FRAGMENT_SHADER)
-        self.program    = shaders.compileProgram(VERTEX_SHADER,FRAGMENT_SHADER)
+        self.program = glCreateProgram()
+        shads = (VERTEX_SHADER, FRAGMENT_SHADER)
+        for shader in shads:
+            glAttachShader(self.program, shader)
+        self.fragment_shader_attrib_binding()
+        self.program = shaders.ShaderProgram( self.program )
+        glLinkProgram(self.program)
+        self.program.check_validate()
+        self.program.check_linked()
+        for shader in shads:
+            glDeleteShader(shader)
+        #self.program    = shaders.compileProgram(VERTEX_SHADER,FRAGMENT_SHADER)
         for (namelist,func) in ((uniforms,glGetUniformLocation),(attributes,glGetAttribLocation)):
             for name in namelist:
                 setattr(self.locations,name,func(self.program,name))
+
+    def fragment_shader_attrib_binding(self):
+        pass
+
+class GeometryShaderData(ShaderData):
+    def fragment_shader_attrib_binding(self):
+        glBindAttribLocation(self.program, 0, 'diffuse')
+        glBindAttribLocation(self.program, 1, 'normal')
+        glBindAttribLocation(self.program, 2, 'displacement')
+        glBindAttribLocation(self.program, 3, 'occlude')
 
 class State(object):
     """Stores the state of the tactical viewer; position and scale"""
@@ -200,7 +221,7 @@ class UIBuffers(object):
 
 z_max            = 10000
 light_shader     = ShaderData()
-geom_shader      = ShaderData()
+geom_shader      = GeometryShaderData()
 default_shader   = ShaderData()
 shadow_shader    = ShaderData()
 state            = State(geom_shader)
