@@ -163,10 +163,10 @@ class ShaderData(object):
 
 class GeometryShaderData(ShaderData):
     def fragment_shader_attrib_binding(self):
-        glBindAttribLocation(self.program, 0, 'diffuse')
-        glBindAttribLocation(self.program, 1, 'normal')
-        glBindAttribLocation(self.program, 2, 'displacement')
-        glBindAttribLocation(self.program, 3, 'occlude')
+        glBindFragDataLocation(self.program, 0, 'diffuse')
+        glBindFragDataLocation(self.program, 1, 'normal')
+        glBindFragDataLocation(self.program, 2, 'displacement')
+        glBindFragDataLocation(self.program, 3, 'occlude')
 
 class State(object):
     """Stores the state of the tactical viewer; position and scale"""
