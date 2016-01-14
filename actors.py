@@ -353,7 +353,7 @@ class Torch(ConeLight):
     @property
     def pos(self):
         offset = cmath.rect(self.offset[0],self.offset[1]+self.parent.angle)
-        pos = (self.parent.pos + Point(offset.real,offset.imag))*globals.tile_dimensions
+        pos = ((self.parent.pos + Point(offset.real,offset.imag))*globals.tile_dimensions).to_int()
         return (pos.x,pos.y,self.z)
 
     def turn_on(self):

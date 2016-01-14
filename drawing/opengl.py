@@ -71,11 +71,14 @@ class GeometryBuffer(object):
 class ShadowMapBuffer(GeometryBuffer):
     TEXTURE_TYPE_SHADOW = 0
     NUM_TEXTURES        = 1
-    WIDTH               = 1024
-    HEIGHT              = 256
+    #WIDTH               = globals.screen_abs.x
+    #HEIGHT              = globals.screen_abs.y
 
     def __init__(self):
+        self.WIDTH = globals.screen_abs.x
+        self.HEIGHT = globals.screen_abs.y
         super(ShadowMapBuffer,self).__init__(self.WIDTH,self.HEIGHT)
+
 
     def InitBound(self,width,height):
         self.textures      = glGenTextures(self.NUM_TEXTURES)
@@ -109,6 +112,7 @@ class ShadowMapBuffer(GeometryBuffer):
         for i,texture in enumerate(self.textures):
             glActiveTexture(GL_TEXTURE0 + i + offset)
             glBindTexture(GL_TEXTURE_2D, texture)
+
 
 
 class ShaderLocations(object):
@@ -352,18 +356,18 @@ def EndFrameGameMode():
     shadow_shader.Use()
 
     #do the mouse light
-    glUniform2f(shadow_shader.locations.light_pos, *(globals.mouse_screen))
+    #glUniform2f(shadow_shader.locations.light_pos, *(globals.mouse_screen))
     #print globals.mouse_screen.to_float()/globals.screen
     quad_buffer = globals.shadow_quadbuffer
     glEnableVertexAttribArray( shadow_shader.locations.vertex_data );
     glVertexAttribPointer( shadow_shader.locations.vertex_data, 3, GL_FLOAT, GL_FALSE, 0, quad_buffer.vertex_data )
-    glDrawElements(GL_QUADS,4,GL_UNSIGNED_INT,quad_buffer.indices)
+    #glDrawElements(GL_QUADS,4,GL_UNSIGNED_INT,quad_buffer.indices[:4])
 
     #Now do the other lights with shadows
     for light in itertools.chain(globals.lights,globals.cone_lights):
         glUniform2f(shadow_shader.locations.light_pos, *light.screen_pos[:2])
-        glVertexAttribPointer( shadow_shader.locations.vertex_data, 3, GL_FLOAT, GL_FALSE, 0, quad_buffer.vertex_data )
-        glDrawElements(GL_QUADS,4,GL_UNSIGNED_INT,quad_buffer.indices[light.shadow_index*4:])
+        #glVertexAttribPointer( shadow_shader.locations.vertex_data, 3, GL_FLOAT, GL_FALSE, 0, quad_buffer.vertex_data )
+        glDrawElements(GL_QUADS,4,GL_UNSIGNED_INT,quad_buffer.indices[light.shadow_index*4:(light.shadow_index+1)*4])
 
     #return
 
@@ -376,7 +380,7 @@ def EndFrameGameMode():
     glUniform1f(light_shader.locations.light_radius, 400)
     glUniform1f(light_shader.locations.light_intensity, 1)
 
-    quad_buffer = globals.temp_mouse_light
+    #quad_buffer = globals.temp_mouse_light
 
     #Hack, do the mouse light separate for now so we can set it's position. Should be done elsewhere really and be in
     #the lights list
@@ -408,7 +412,7 @@ def EndFrameGameMode():
     #This is the ambient light box around the whole screen for sunlight
     glDrawElements(GL_QUADS,quad_buffer.current_size,GL_UNSIGNED_INT,quad_buffer.indices)
 
-    #Now get the nighttime illumination
+    #now get the nighttime illumination
     #dev hack so I can see what's going on
     # nightlight_dir,nightlight_colour = timeofday.Nightlight()
     # quad_buffer = globals.nightlight_quads
@@ -487,7 +491,7 @@ def InitDrawing():
     glUniform1i(shadow_shader.locations.normal_map  , gbuffer.TEXTURE_TYPE_NORMAL)
     glUniform1i(shadow_shader.locations.occlude_map  , gbuffer.TEXTURE_TYPE_OCCLUDE)
     glUniform3f(shadow_shader.locations.screen_dimensions, globals.screen_abs.x, globals.screen_abs.y, z_max)
-    glUniform3f(shadow_shader.locations.sb_dimensions, ShadowMapBuffer.WIDTH, ShadowMapBuffer.HEIGHT, 1)
+    glUniform3f(shadow_shader.locations.sb_dimensions, globals.screen_abs.x, globals.screen_abs.y, 1)
     glUniform2f(shadow_shader.locations.light_dimensions, 256, 256)
     light_shader.Use()
     glUniform1i(light_shader.locations.displacement_map, gbuffer.TEXTURE_TYPE_DISPLACEMENT)

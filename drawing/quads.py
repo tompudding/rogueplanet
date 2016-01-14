@@ -3,6 +3,7 @@ import drawing
 from globals.types import Point
 from drawing.opengl import GL_QUADS
 from drawing.opengl import GL_LINES
+import globals
 
 class ShapeBuffer(object):
     """
@@ -87,10 +88,11 @@ class ShadowQuadBuffer(QuadBuffer):
         light = Quad(self)
         #Now set the vertices for the next line ...
         bl = Point(0,row)
-        tr = Point(drawing.opengl.ShadowMapBuffer.WIDTH,(row+1))
+        tr = Point(globals.screen_abs.x,(row+1))
+        print bl,':',tr
         #bl = Point(0,0)
         #tr = Point(drawing.opengl.ShadowMapBuffer.WIDTH,drawing.opengl.ShadowMapBuffer.HEIGHT)
-        light.SetVertices(bl,tr,0)
+        light.SetVertices(bl,tr,row)
         light.shadow_index = row
         return light
 
@@ -98,6 +100,10 @@ class ShadowQuadBuffer(QuadBuffer):
 class LineBuffer(ShapeBuffer):
     num_points = 2
     draw_type = GL_LINES
+    def __init__(self,size,ui = False,mouse_relative = False):
+        self.is_ui = ui
+        self.mouse_relative = mouse_relative
+        super(LineBuffer,self).__init__(size)
 
 class ShapeVertex(object):
     """ Convenience object to allow nice slicing of the parent buffer """
