@@ -24,6 +24,8 @@ class Actor(object):
     height  = None
     threshold = 0.01
     initial_health = 100
+    max_speed = 0.25
+    max_square_speed = max_speed**2
     def __init__(self,map,pos):
         self.map            = map
         self.tc             = globals.atlas.TextureSpriteCoords('%s.png' % self.texture)
@@ -92,7 +94,6 @@ class Actor(object):
     def TriggerCollide(self,other):
         pass
 
-
     def set_angle(self, angle):
         self.angle = angle
         self.corners_polar  = [(p.length(),self.angle + ((1+i*2)*math.pi)/4) for i,p in enumerate(self.corners)]
@@ -106,17 +107,25 @@ class Actor(object):
         if self.last_update == None:
             self.last_update = globals.time
             return
-        elapsed = globals.time - self.last_update
+        elapsed = (globals.time - self.last_update)*globals.time_step
         self.last_update = globals.time
 
+        self.move_speed += self.move_direction*elapsed
+        if self.move_speed.SquareLength() > self.max_square_speed:
+            self.move_speed = self.move_speed.unit_vector() * self.max_speed
 
-        self.move_speed += self.move_direction*elapsed*globals.time_step
-        self.move_speed *= 0.7*(1-(elapsed/1000.0))
+        friction = self.move_speed.unit_vector()*0.05*elapsed
+        if friction.SquareLength() < self.move_speed.SquareLength():
+            #self.move_speed *= 0.7*(1-(elapsed/1000.0))
+            self.move_speed -= friction
+        else:
+            self.move_speed = Point(0,0)
+        
 
         if self.interacting:
             self.move_speed = Point(0,0)
 
-        amount = Point(self.move_speed.x*elapsed*globals.time_step,self.move_speed.y*elapsed*globals.time_step)
+        amount = self.move_speed * elapsed
 
         bl = self.pos.to_int()
         tr = (self.pos+self.size).to_int()
