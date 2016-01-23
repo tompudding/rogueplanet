@@ -13,7 +13,7 @@ class Sounds(object):
 
         for filename in glob.glob(os.path.join('resource','sounds','*.ogg')):
             sound = pygame.mixer.Sound(filename)
-            sound.set_volume(0.6)
+            sound.set_volume(0.0)
             name = os.path.basename(filename)
             name = os.path.splitext(name)[0]
             if name.startswith('talking'):

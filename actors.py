@@ -114,13 +114,13 @@ class Actor(object):
         if self.move_speed.SquareLength() > self.max_square_speed:
             self.move_speed = self.move_speed.unit_vector() * self.max_speed
 
-        friction = self.move_speed.unit_vector()*0.05*elapsed
+        friction = self.move_speed.unit_vector()*0.03*elapsed
         if friction.SquareLength() < self.move_speed.SquareLength():
             #self.move_speed *= 0.7*(1-(elapsed/1000.0))
             self.move_speed -= friction
         else:
             self.move_speed = Point(0,0)
-        
+
 
         if self.interacting:
             self.move_speed = Point(0,0)
@@ -412,6 +412,8 @@ class Enemy(Actor):
     brightness_threshold = 0.1
     flee_threshold = 0.03
     base_attack_damage = 5
+    max_speed = 0.15
+    max_square_speed = max_speed**2
 
     def __init__(self,map,pos):
         self.last_random = 0
