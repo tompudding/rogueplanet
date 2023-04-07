@@ -50,7 +50,7 @@ class Actor(object):
         self.set_angle(3*math.pi/2)
 
     def RemoveFromMap(self):
-        if self.pos != None:
+        if self.pos is not None:
             bl = self.pos.to_int()
             tr = (self.pos+self.size).to_int()
             for x in xrange(bl.x,tr.x+1):
@@ -104,7 +104,7 @@ class Actor(object):
         self.Move(t)
 
     def Move(self,t):
-        if self.last_update == None:
+        if self.last_update is None:
             self.last_update = globals.time
             return
         elapsed = (globals.time - self.last_update)*globals.time_step
@@ -382,7 +382,7 @@ class Torch(ConeLight):
         self.parent.info_box.torch_data.power.SetBarLevel(float(self.level)/self.max_level)
 
     def Update(self,t):
-        if self.last_update == None:
+        if self.last_update is None:
             self.last_update = globals.time
             return
         elapsed = globals.time - self.last_update
